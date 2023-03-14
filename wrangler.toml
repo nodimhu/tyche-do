@@ -1,0 +1,12 @@
+name = "tyche-do"
+main = "src/index.ts"
+compatibility_date = "2023-03-12"
+
+[durable_objects]
+bindings = [
+  { name = "TYCHE_DO", class_name = "TycheDO" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["TycheDO"]
