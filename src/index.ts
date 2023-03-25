@@ -6,12 +6,14 @@ import {
 
 declare global {
   interface Env {
+    INDEXER: DurableObjectNamespace;
     USERS: DurableObjectNamespace;
     ENVIRONMENT: string;
     AUTH_TOKEN?: string;
   }
 }
 
+export { Indexer } from "./objects/indexer";
 export { Users } from "./objects/users";
 
 export default {
@@ -40,6 +42,11 @@ export default {
     }
 
     switch (url.pathname) {
+      case "/indexer": {
+        const indexerId = env.INDEXER.idFromName(objName);
+        const indexerStub = env.INDEXER.get(indexerId);
+        return await indexerStub.fetch(request);
+      }
       case "/users": {
         if (objName !== "root") {
           return new HttpBadRequestResponse("ObjName Not Root");

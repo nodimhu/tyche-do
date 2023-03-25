@@ -5,9 +5,15 @@ compatibility_date = "2023-03-12"
 
 [durable_objects]
 bindings = [
+  { name = "INDEXER", class_name = "Indexer" },
   { name = "USERS", class_name = "Users" },
 ]
 
 [[migrations]]
 tag = "v1"
 new_classes = ["Users"]
+
+[[migrations]]
+tag = "v2"
+new_classes = ["Indexer"]
+
