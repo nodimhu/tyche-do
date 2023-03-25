@@ -1,7 +1,7 @@
 export const JSON_CONTENT_HEADER = { "content-type": "application/json" };
 
-export class HttpOKResponse extends Response {
-  constructor(body?: object | string, init: ResponseInit = {}) {
+export class HttpOKResponse<Body extends object | string> extends Response {
+  constructor(body?: Body, init: ResponseInit = {}) {
     super(body && JSON.stringify(body), {
       ...init,
       status: 200,
@@ -11,10 +11,11 @@ export class HttpOKResponse extends Response {
 }
 
 export class HttpNoContentResponse extends Response {
-  constructor() {
+  constructor(init: ResponseInit = {}) {
     super(null, {
+      ...init,
       status: 204,
-      headers: { "content-length": "0", ...JSON_CONTENT_HEADER },
+      headers: { ...init.headers, "content-length": "0", ...JSON_CONTENT_HEADER },
     });
   }
 }
