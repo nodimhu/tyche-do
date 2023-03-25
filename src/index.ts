@@ -1,4 +1,8 @@
-import { HttpNotFoundResponse, HttpUnauthorizedResponse } from "./common/responses";
+import {
+  HttpBadRequestResponse,
+  HttpNotFoundResponse,
+  HttpUnauthorizedResponse,
+} from "./common/responses";
 
 declare global {
   interface Env {
@@ -8,7 +12,7 @@ declare global {
   }
 }
 
-export { Users } from "./users";
+export { Users } from "./objects/users";
 
 export default {
   async fetch(request: Request, env: Env) {
@@ -22,22 +26,28 @@ export default {
 
     if (
       env.ENVIRONMENT !== "dev" &&
-      (!authToken ||
-        authToken.length === 0 ||
-        !env.AUTH_TOKEN ||
-        env.AUTH_TOKEN.length === 0 ||
-        authToken !== env.AUTH_TOKEN)
+      (!authToken || !env.AUTH_TOKEN || authToken !== env.AUTH_TOKEN)
     ) {
       return new HttpUnauthorizedResponse();
     }
 
     const url = new URL(request.url);
 
+    const objName = url.searchParams.get("objName");
+
+    if (!objName) {
+      return new HttpBadRequestResponse("Missing query parameters: objName");
+    }
+
     switch (url.pathname) {
-      case "/users":
+      case "/users": {
+        if (objName !== "root") {
+          return new HttpBadRequestResponse("ObjName Not Root");
+        }
         const usersId = env.USERS.idFromName("root");
         const usersStub = env.USERS.get(usersId);
         return await usersStub.fetch(request);
+      }
       default:
         return new HttpNotFoundResponse();
     }

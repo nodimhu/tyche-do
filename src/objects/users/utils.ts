@@ -1,6 +1,7 @@
 import sha256 from "crypto-js/sha256";
 
-import { HashData } from "./types";
+import { HashData } from "../../common/types";
+import { User } from "./types";
 
 export function createPasswordHashData(password: string): HashData {
   const randomValues = crypto.getRandomValues(new Uint8Array(16));
@@ -21,4 +22,10 @@ export function verifyPassword(password: string, passwordHashData: HashData): bo
   const passwordHash = sha256(password + passwordHashData.salt).toString();
 
   return passwordHash === passwordHashData.hash;
+}
+
+export function withoutPasswordHashData(user: User): Omit<User, "passwordHashData"> {
+  const returnUser: Partial<User> = { ...user };
+  delete returnUser.passwordHashData
+  return returnUser as Omit<User, "passwordHashData">;
 }

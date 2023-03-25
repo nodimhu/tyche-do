@@ -8,3 +8,8 @@ export type JSONValue =
   | JSONValue[];
 
 export type JSONObject = { [K: string]: JSONValue };
+
+export type HashData = {
+  hash: string;
+  salt: string;
+};
