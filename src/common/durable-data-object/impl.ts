@@ -1,4 +1,5 @@
 import { JSONObject } from "../types";
+import { DurableDataObjectMeta } from "./types";
 
 export abstract class DurableDataObject<Data extends JSONObject>
   implements DurableObject
@@ -9,7 +10,7 @@ export abstract class DurableDataObject<Data extends JSONObject>
   protected env: Env;
   private data: Data;
 
-  private loadedKeys: Set<keyof Data> = new Set();
+  private loadedKeys: Set<keyof Data> | "all" = new Set();
 
   constructor(state: DurableObjectState, env: Env, defaultData: Data) {
     this.state = state;
@@ -18,19 +19,20 @@ export abstract class DurableDataObject<Data extends JSONObject>
 
     if (!this.LAZY_LOAD) {
       this.state.blockConcurrencyWhile(async () => {
-        await this.loadKeyOverData(Object.keys(this.data));
+        await this.loadAllData();
+        this.loadedKeys = "all";
       });
     }
   }
 
   private async loadKeyOverData(keys: (keyof Data)[]): Promise<void> {
-    if (!this.LAZY_LOAD) {
-      return; // already loaded all data in constructor
+    if (this.loadedKeys === "all") {
+      return;
     }
 
     const keysToLoad = keys
       .map((key) => key.toString())
-      .filter((key) => !this.loadedKeys.has(key));
+      .filter((key) => this.loadedKeys !== "all" && !this.loadedKeys.has(key));
 
     if (keysToLoad.length === 0) {
       return;
@@ -46,16 +48,39 @@ export abstract class DurableDataObject<Data extends JSONObject>
     }
   }
 
+  private async loadAllData(): Promise<void> {
+    if (this.loadedKeys === "all") {
+      return;
+    }
+
+    const allData = await this.state.storage.list();
+
+    for (const [key, value] of allData.entries()) {
+      if (value !== undefined) {
+        Object.assign(this.data, { [key]: value });
+      }
+    }
+
+    this.loadedKeys = "all";
+  }
+
+  async getMetaData(): Promise<DurableDataObjectMeta> {
+    const hasStoredData = (await this.state.storage.list({ limit: 1 })).size > 0;
+    return {
+      hasStoredData,
+    };
+  }
+
   async getData(): Promise<Data>;
-  async getData<K extends keyof Data>(key: K): Promise<Data[K] | undefined>;
+  async getData<K extends keyof Data>(key: K): Promise<Data[K]>;
   async getData<K extends (keyof Data)[]>(
     keys: K,
   ): Promise<{ [V in K[number]]: Data[V] }>;
   async getData<K extends keyof Data, I extends (keyof Data)[]>(
     keyOrKeys?: K | I,
-  ): Promise<Data | Data[K] | { [V in I[number]]: Data[V] } | undefined> {
+  ): Promise<Data | Data[K] | { [V in I[number]]: Data[V] }> {
     if (!keyOrKeys) {
-      await this.loadKeyOverData(Object.keys(this.data));
+      await this.loadAllData();
       return this.data;
     }
 
@@ -70,7 +95,9 @@ export abstract class DurableDataObject<Data extends JSONObject>
 
     const queriedData = Object.fromEntries(
       Object.entries(this.data).filter(([key]) => queriedKeys.has(key)),
-    ) as { [V in (typeof keyOrKeys)[number]]: Data[V] };
+    ) as {
+      [V in (typeof keyOrKeys)[number]]: Data[V];
+    };
 
     return queriedData;
   }
@@ -80,7 +107,7 @@ export abstract class DurableDataObject<Data extends JSONObject>
 
     for (const [key, value] of Object.entries(partialData)) {
       await this.state.storage.put(key, value);
-      if (this.LAZY_LOAD) {
+      if (this.loadedKeys !== "all") {
         this.loadedKeys.add(key); // prevent reloading key with next get
       }
     }
