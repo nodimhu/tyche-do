@@ -6,28 +6,36 @@ import {
   HttpNoContentResponse,
 } from "../responses";
 import { JSONValue } from "../types";
-import { OperationParameterRequiredError } from "./errors";
-import { isOperationRequest } from "./guards";
+import { OperationError } from "./errors";
+import { isOperationRequestJSON } from "./guards";
 
 export class DurableOperationObject implements DurableObject {
+  protected state: DurableObjectState;
+  protected env: Env;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+  }
+
   async fetch(request: Request): Promise<Response> {
     if (request.method !== "POST") {
       return new HttpMethodNotAllowedResponse();
     }
 
-    let requestJson: JSONValue = undefined;
+    let requestJSON: JSONValue = undefined;
 
     try {
-      requestJson = await request.json<JSONValue>();
+      requestJSON = await request.json<JSONValue>();
     } catch {
       return new HttpBadRequestResponse("Malformed JSON");
     }
 
-    if (!isOperationRequest(requestJson)) {
+    if (!isOperationRequestJSON(requestJSON)) {
       return new HttpBadRequestResponse("Not Operation Request");
     }
 
-    const { operation, parameters } = requestJson;
+    const { operation, parameters } = requestJSON;
 
     const operationFunction = this[operation as keyof this];
 
@@ -43,7 +51,7 @@ export class DurableOperationObject implements DurableObject {
     let returnValue: unknown;
 
     try {
-      operationResult = operationFunction.call(this, parameters ?? {});
+      operationResult = operationFunction.call(this, parameters ?? {}, request);
 
       if (operationResult instanceof Promise) {
         returnValue = await operationResult;
@@ -51,9 +59,11 @@ export class DurableOperationObject implements DurableObject {
         returnValue = operationResult;
       }
     } catch (error) {
-      if (error instanceof OperationParameterRequiredError) {
+      if (error instanceof OperationError) {
         return new HttpBadRequestResponse(error.message);
       }
+
+      console.error(error);
       return new HttpInternalServerErrorResponse("Operation Error");
     }
 

@@ -1,20 +1,20 @@
 import { hasOwnProperty } from "../guards";
 import { JSONValue } from "../types";
-import { IOperationRequest } from "./types";
+import { OperationRequestJSON } from "./types";
 
-export function isOperationRequest<T extends JSONValue>(
-  requestJson: T,
-): requestJson is T & IOperationRequest {
-  if (typeof requestJson !== "object") {
+export function isOperationRequestJSON<InferredRequestJson extends JSONValue>(
+  requestJSON: InferredRequestJson,
+): requestJSON is InferredRequestJson & OperationRequestJSON {
+  if (typeof requestJSON !== "object") {
     return false;
   }
 
-  const hasOperation = hasOwnProperty(requestJson, "operation");
-  const hasParameters = hasOwnProperty(requestJson, "parameters");
+  const hasOperation = hasOwnProperty(requestJSON, "operation");
+  const hasParameters = hasOwnProperty(requestJSON, "parameters");
 
   return (
     hasOperation &&
-    typeof requestJson.operation === "string" &&
-    (!hasParameters || typeof requestJson.parameters === "object")
+    typeof requestJSON.operation === "string" &&
+    (!hasParameters || typeof requestJSON.parameters === "object")
   );
 }

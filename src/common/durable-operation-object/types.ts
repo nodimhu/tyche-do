@@ -1,6 +1,8 @@
 import { JSONObject } from "../types";
 
-export interface IOperationRequest {
+export type OperationRequestJSON<
+  InferredParameters extends JSONObject | undefined = undefined,
+> = {
   operation: string;
-  parameters?: Partial<JSONObject>;
-}
+  parameters: InferredParameters;
+};
