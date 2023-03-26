@@ -2,7 +2,7 @@ export class OperationError extends Error {
   name = "OperationError";
 
   constructor(message: string) {
-    const constructedMessage = "Operation Error" + (message ? ": " + message : "");
+    const constructedMessage = message || "Operation Error";
     super(constructedMessage);
   }
 }
