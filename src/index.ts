@@ -7,6 +7,7 @@ import {
 declare global {
   interface Env {
     INDEXER: DurableObjectNamespace;
+    USER_BOARDSETS: DurableObjectNamespace;
     USERS: DurableObjectNamespace;
     ENVIRONMENT: string;
     AUTH_TOKEN?: string;
@@ -14,6 +15,7 @@ declare global {
 }
 
 export { Indexer } from "./objects/indexer";
+export { UserBoardsets } from "./objects/user-boardsets";
 export { Users } from "./objects/users";
 
 export default {
@@ -46,6 +48,11 @@ export default {
         const indexerId = env.INDEXER.idFromName(objName);
         const indexerStub = env.INDEXER.get(indexerId);
         return await indexerStub.fetch(request);
+      }
+      case "/user-boardsets": {
+        const boardsetsId = env.USER_BOARDSETS.idFromName(objName);
+        const boardsetsStub = env.USER_BOARDSETS.get(boardsetsId);
+        return await boardsetsStub.fetch(request);
       }
       case "/users": {
         if (objName !== "root") {

@@ -6,6 +6,7 @@ compatibility_date = "2023-03-12"
 [durable_objects]
 bindings = [
   { name = "INDEXER", class_name = "Indexer" },
+  { name = "USER_BOARDSETS", class_name = "UserBoardsets" },
   { name = "USERS", class_name = "Users" },
 ]
 
@@ -16,4 +17,8 @@ new_classes = ["Users"]
 [[migrations]]
 tag = "v2"
 new_classes = ["Indexer"]
+
+[[migrations]]
+tag = "v3"
+new_classes = ["UserBoardsets"]
 
