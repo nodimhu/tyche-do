@@ -1,5 +1,17 @@
 import { JSON_CONTENT_HEADER } from "../responses";
 import { JSONObject } from "../types";
+import { OperationParameterInvalidError } from "./errors";
+
+export function validateParams(isValidParameter: Record<string, boolean>): void {
+  const invalidParameters = Object.entries(isValidParameter).reduce(
+    (prev, [name, isValid]) => (isValid ? prev : prev.concat(name)),
+    [] as string[],
+  );
+
+  if (invalidParameters.length > 0) {
+    throw new OperationParameterInvalidError(invalidParameters.join(", "));
+  }
+}
 
 export async function fetchOperation<
   OperationObject extends DurableObject | unknown = unknown,

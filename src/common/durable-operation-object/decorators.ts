@@ -21,6 +21,39 @@ export function Operation<
   return descriptor;
 }
 
+export function ValidateParams<ParamType extends JSONObject>(
+  validator: (params: ParamType) => void,
+) {
+  return function <
+    InferredName extends string | void,
+    InferredResponse extends Response | Promise<Response> | void,
+  >(
+    target: object,
+    key: string | symbol,
+    descriptor: TypedPropertyDescriptor<
+      (params: ParamType, name: InferredName) => InferredResponse
+    >,
+  ): TypedPropertyDescriptor<
+    (params: ParamType, name: InferredName) => InferredResponse
+  > {
+    const child = descriptor.value;
+
+    if (!child) {
+      return descriptor;
+    }
+
+    descriptor.value = function (
+      params: ParamType,
+      name: InferredName,
+    ): InferredResponse {
+      validator(params);
+      return child.call(this, params, name);
+    };
+
+    return descriptor;
+  };
+}
+
 export function RequireParams<ParamType extends JSONObject>(
   ...requiredParameterKeys: (keyof ParamType)[]
 ) {

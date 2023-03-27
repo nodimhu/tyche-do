@@ -25,7 +25,6 @@ import {
   UpdateBoardsetResult,
 } from "./results";
 import { BoardsetsData } from "./types";
-import { validateCurrency } from "./utils";
 
 // objName: <username>
 export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({}) {
@@ -59,8 +58,6 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   @Operation
   @RequireParams<CreateBoardsetParams>("name")
   async createBoardset(params: CreateBoardsetParams, name: string): Promise<Response> {
-    validateCurrency(params.currency);
-
     const newBoardsetId = await this.createBoardsetId(name);
 
     const newBoardset = {
@@ -81,8 +78,6 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
     if (!boardset) {
       return new HttpNotFoundResponse();
     }
-
-    validateCurrency(params.boardset.currency);
 
     if (params.boardset.name) {
       boardset.name = params.boardset.name;

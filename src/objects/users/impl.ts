@@ -4,6 +4,7 @@ import {
 } from "../../common/durable-operation-object";
 import {
   RequireParams,
+  ValidateParams,
 } from "../../common/durable-operation-object/decorators";
 import { fetchOperation } from "../../common/durable-operation-object/helpers";
 import {
@@ -30,6 +31,12 @@ import {
   verifyPassword,
   withoutPasswordHashData,
 } from "./utils";
+import {
+  createUserValidator,
+  getOrDeleteUserValidator,
+  updateUserValidator,
+  verifyUserPasswordValidator,
+} from "./validators";
 
 // TODO: Research potential concurrency issues arrising from all users using the same
 // "root" Users object. May be benefitial to implement concurrency config in
@@ -43,6 +50,7 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
+  @ValidateParams(getOrDeleteUserValidator)
   @RequireParams<GetUserParams>("username")
   async getUser(params: GetUserParams): Promise<Response> {
     const user = await this.getData(params.username);
@@ -55,6 +63,7 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
+  @ValidateParams(createUserValidator)
   @RequireParams<CreateUserParams>("username", "password", "email")
   async createUser(params: CreateUserParams): Promise<Response> {
     const existingUser = await this.getData(params.username);
@@ -75,6 +84,7 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
+  @ValidateParams(updateUserValidator)
   @RequireParams<UpdateUserParams>("username", "user")
   async updateUser(params: UpdateUserParams): Promise<Response> {
     const user = await this.getData(params.username);
@@ -83,15 +93,15 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
       return new HttpNotFoundResponse();
     }
 
-    if (params.user.email) {
+    if (params.user.email !== undefined) {
       user.email = params.user.email;
     }
 
-    if (params.user.displayName) {
+    if (params.user.displayName !== undefined) {
       user.displayName = params.user.displayName;
     }
 
-    if (params.user.password) {
+    if (params.user.password !== undefined) {
       if (!verifyPassword(params.user.password.current, user.passwordHashData)) {
         return new HttpUnauthorizedResponse();
       }
@@ -105,6 +115,7 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
+  @ValidateParams(getOrDeleteUserValidator)
   @RequireParams<DeleteUserParams>("username")
   async deleteUser(params: DeleteUserParams): Promise<Response> {
     const user = await this.getData(params.username);
@@ -130,6 +141,7 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
+  @ValidateParams(verifyUserPasswordValidator)
   @RequireParams<VerifyUserPasswordParams>("username", "password")
   async verifyUserPassword(params: VerifyUserPasswordParams): Promise<Response> {
     const userInfo = await this.getData(params.username);
