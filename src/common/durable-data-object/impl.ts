@@ -12,10 +12,10 @@ export abstract class DurableDataObject<Data extends JSONObject>
 
   private loadedKeys: Set<keyof Data> | "all" = new Set();
 
-  constructor(state: DurableObjectState, env: Env, defaultData: Data) {
+  constructor(state: DurableObjectState, env: Env, private defaultData: Data) {
     this.state = state;
     this.env = env;
-    this.data = defaultData;
+    this.data = { ...defaultData };
 
     if (!this.LAZY_LOAD) {
       this.state.blockConcurrencyWhile(async () => {
