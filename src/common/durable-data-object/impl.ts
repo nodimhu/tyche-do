@@ -106,11 +106,21 @@ export abstract class DurableDataObject<Data extends JSONObject>
     Object.assign(this.data, partialData);
 
     for (const [key, value] of Object.entries(partialData)) {
-      await this.state.storage.put(key, value);
+      if (value !== undefined) {
+        await this.state.storage.put(key, value);
+      } else {
+        await this.state.storage.delete(key);
+      }
       if (this.loadedKeys !== "all") {
         this.loadedKeys.add(key); // prevent reloading key with next get
       }
     }
+  }
+
+  async purgeData(): Promise<void> {
+    await this.state.storage.deleteAll();
+    this.data = this.defaultData;
+    this.loadedKeys = "all";
   }
 
   abstract fetch(request: Request): Promise<Response>;
