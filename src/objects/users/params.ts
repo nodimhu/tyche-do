@@ -1,25 +1,28 @@
+import { User } from "./types";
+
+type UserWithoutPassword = Omit<User, "passwordHashData">;
+
 export type GetUserParams = {
   username: string;
 };
 
 export type CreateUserParams = {
-  displayName?: string;
-  email: string;
-  password: string;
   username: string;
-};
+  password: string;
+  email: string;
+} & Partial<UserWithoutPassword>;
 
 export type UpdateUserParams = {
   username: string;
   user: {
-    displayName?: string;
-    email?: string;
     password?: {
       current: string;
       new: string;
     };
-  };
+  } & Partial<UserWithoutPassword>;
 };
+
+export type DeleteUserParams = GetUserParams;
 
 export type VerifyUserPasswordParams = {
   username: string;

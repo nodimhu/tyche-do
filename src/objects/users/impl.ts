@@ -2,18 +2,23 @@ import {
   DurableDataOperationObject,
   Operation,
 } from "../../common/durable-operation-object";
-import { RequireParams } from "../../common/durable-operation-object/decorators";
-import { makeOperationRequest } from "../../common/durable-operation-object/helpers";
+import {
+  RequireParams,
+} from "../../common/durable-operation-object/decorators";
+import { fetchOperation } from "../../common/durable-operation-object/helpers";
 import {
   HttpConflictResponse,
+  HttpNoContentResponse,
   HttpNotFoundResponse,
   HttpOKResponse,
   HttpUnauthorizedResponse,
 } from "../../common/responses";
 
+import { UserBoardsets } from "../user-boardsets";
 import { UserSettings } from "../user-settings";
 import {
   CreateUserParams,
+  DeleteUserParams,
   GetUserParams,
   UpdateUserParams,
   VerifyUserPasswordParams,
@@ -27,7 +32,7 @@ import {
 } from "./utils";
 
 // TODO: Research potential concurrency issues arrising from all users using the same
-// "root" Users object. My be benefitial to implement concurrency config in
+// "root" Users object. May be benefitial to implement concurrency config in
 // DurableDataObject and allow concurrency in Users. The implementation must ensure
 // potential race conditions only for a single user, which should be fine.
 
@@ -97,6 +102,31 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
     await this.setData({ [params.username]: user });
 
     return new HttpOKResponse<UpdateUserResult>(withoutPasswordHashData(user));
+  }
+
+  @Operation
+  @RequireParams<DeleteUserParams>("username")
+  async deleteUser(params: DeleteUserParams): Promise<Response> {
+    const user = await this.getData(params.username);
+
+    if (!user) {
+      return new HttpNotFoundResponse();
+    }
+
+    await fetchOperation<UserSettings>(
+      this.env.USER_SETTINGS,
+      params.username,
+      "_purgeData",
+    );
+    await fetchOperation<UserBoardsets>(
+      this.env.USER_BOARDSETS,
+      params.username,
+      "deleteAllBoardsets",
+    );
+
+    await this.setData({ [params.username]: undefined });
+
+    return new HttpNoContentResponse();
   }
 
   @Operation

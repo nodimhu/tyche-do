@@ -59,4 +59,11 @@ export class UserSettings extends DurableDataOperationObject<UserSettingsData>(
 
     return new HttpOKResponse<UpdateUserSettingsResult>(userSettingsData);
   }
+
+  @Operation
+  async _purgeData(): Promise<Response> {
+    await this.purgeData();
+
+    return new HttpNoContentResponse();
+  }
 }

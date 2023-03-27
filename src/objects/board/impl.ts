@@ -238,4 +238,11 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
 
     return new HttpNoContentResponse();
   }
+
+  @Operation
+  async _purgeData(): Promise<Response> {
+    await this.purgeData();
+
+    return new HttpNoContentResponse();
+  }
 }

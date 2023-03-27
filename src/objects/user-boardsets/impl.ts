@@ -5,12 +5,12 @@ import {
 import { RequireParams } from "../../common/durable-operation-object/decorators";
 import { fetchOperation } from "../../common/durable-operation-object/helpers";
 import {
-  HttpBadRequestResponse,
   HttpNoContentResponse,
   HttpNotFoundResponse,
   HttpOKResponse,
 } from "../../common/responses";
 
+import { BoardsetBoards } from "../boardset-boards";
 import { createIndexedId } from "../indexer/helpers";
 import {
   CreateBoardsetParams,
@@ -104,16 +104,47 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   @Operation
   @RequireParams<DeleteBoardsetParams>("boardsetId")
   async deleteBoardset(params: DeleteBoardsetParams): Promise<Response> {
-    return new HttpBadRequestResponse("Operation Not Yet Implemented");
-
     const boardset = await this.getData(params.boardsetId);
 
     if (!boardset) {
       return new HttpNotFoundResponse();
     }
 
-    // TODO: Delete all boards of boardset.
-    // TODO: Delete boardset.
+    await fetchOperation<BoardsetBoards>(
+      this.env.BOARDSET_BOARDS,
+      params.boardsetId,
+      "deleteAllBoards",
+    );
+
+    await this.setData({ [params.boardsetId]: undefined });
+
+    return new HttpNoContentResponse();
+  }
+
+  @Operation
+  async deleteAllBoardsets(params: never, name: string): Promise<Response> {
+    const boardsets = await this.getData();
+
+    const allBoardsetIds = Object.keys(boardsets);
+
+    if (allBoardsetIds.length === 0) {
+      return new HttpNoContentResponse();
+    }
+
+    await Promise.all(
+      allBoardsetIds.map((boardsetId) =>
+        fetchOperation<UserBoardsets, DeleteBoardsetParams>(
+          this.binding,
+          name,
+          "deleteBoardset",
+          {
+            boardsetId,
+          },
+        ),
+      ),
+    );
+
+    await this.purgeData();
 
     return new HttpNoContentResponse();
   }

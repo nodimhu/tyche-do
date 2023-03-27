@@ -88,4 +88,63 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
       [params.year]: boards[params.year] ?? [],
     });
   }
+
+  @Operation
+  @RequireParams<DeleteBoardParams>("boardId")
+  async deleteBoard(params: DeleteBoardParams): Promise<Response> {
+    const boards = await this.getData("boards");
+
+    const [year, yearBoards] =
+      Object.entries(boards).find(([_year, yearBoards]) =>
+        Object.keys(yearBoards).find((boardId) => boardId === params.boardId),
+      ) ?? [];
+
+    if (!year || !yearBoards || !yearBoards[params.boardId]) {
+      return new HttpNotFoundResponse();
+    }
+
+    // purge board data
+    await fetchOperation<Board>(this.env.BOARD, params.boardId, "_purgeData");
+
+    delete boards[year][params.boardId];
+
+    if (Object.keys(boards[year]).length === 0) {
+      delete boards[year];
+    }
+
+    await this.setData({ boards });
+
+    return new HttpNoContentResponse();
+  }
+
+  @Operation
+  async deleteAllBoards(params: never, name: string): Promise<Response> {
+    const boards = await this.getData("boards");
+
+    const allBoardIds = Object.values(boards).reduce(
+      (prev, yearBoards) => prev.concat(Object.keys(yearBoards)),
+      [] as string[],
+    );
+
+    if (allBoardIds.length === 0) {
+      return new HttpNoContentResponse();
+    }
+
+    await Promise.all(
+      allBoardIds.map((boardId) =>
+        fetchOperation<BoardsetBoards, DeleteBoardParams>(
+          this.binding,
+          name,
+          "deleteBoard",
+          {
+            boardId,
+          },
+        ),
+      ),
+    );
+
+    await this.purgeData();
+
+    return new HttpNoContentResponse();
+  }
 }
