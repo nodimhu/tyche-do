@@ -33,6 +33,10 @@ import {
 
 // objName: "root"
 export class Users extends DurableDataOperationObject<UsersData>({}) {
+  protected get binding(): DurableObjectNamespace {
+    return this.env.USERS;
+  }
+
   @Operation
   @RequireParams<GetUserParams>("username")
   async getUser(params: GetUserParams): Promise<Response> {
@@ -46,8 +50,8 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
-  @RequireParams<CreateUserParams>("email", "username", "password")
-  async createUser(params: CreateUserParams, request: Request): Promise<Response> {
+  @RequireParams<CreateUserParams>("username", "password", "email")
+  async createUser(params: CreateUserParams): Promise<Response> {
     const existingUser = await this.getData(params.username);
 
     if (existingUser) {

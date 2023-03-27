@@ -1,5 +1,5 @@
 export type IndexerData = {
-  [name: string]: {
+  [itemName: string]: {
     counter: number;
   };
 };

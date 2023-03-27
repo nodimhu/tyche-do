@@ -11,6 +11,10 @@ import { IndexerData } from "./types";
 
 // objName: <any_name>  - acts as namespace, within which items can be indexed
 export class Indexer extends DurableDataOperationObject<IndexerData>({}) {
+  protected get binding(): DurableObjectNamespace {
+    return this.env.INDEXER;
+  }
+
   @Operation
   @RequireParams<CreateIndexedIdParams>("itemName")
   async createIndexedId(params: CreateIndexedIdParams): Promise<Response> {
@@ -20,7 +24,7 @@ export class Indexer extends DurableDataOperationObject<IndexerData>({}) {
     this.setData({ [params.itemName]: { counter: currentCounter + 1 } });
 
     return new HttpOKResponse<CreateIndexedIdResult>({
-      itemId: params.itemName + currentCounter,
+      itemId: params.itemName + "-" + currentCounter,
     });
   }
 }

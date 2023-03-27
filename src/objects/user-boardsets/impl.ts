@@ -3,7 +3,7 @@ import {
   Operation,
 } from "../../common/durable-operation-object";
 import { RequireParams } from "../../common/durable-operation-object/decorators";
-import { makeOperationRequest } from "../../common/durable-operation-object/helpers";
+import { fetchOperation } from "../../common/durable-operation-object/helpers";
 import {
   HttpBadRequestResponse,
   HttpNoContentResponse,
@@ -11,9 +11,7 @@ import {
   HttpOKResponse,
 } from "../../common/responses";
 
-import { Indexer } from "../indexer";
-import { CreateIndexedIdParams } from "../indexer/params";
-import { CreateIndexedIdResult } from "../indexer/results";
+import { createIndexedId } from "../indexer/helpers";
 import {
   CreateBoardsetParams,
   DeleteBoardsetParams,
@@ -31,6 +29,14 @@ import { validateCurrency } from "./utils";
 
 // objName: <username>
 export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({}) {
+  protected get binding(): DurableObjectNamespace {
+    return this.env.USER_BOARDSETS;
+  }
+
+  async createBoardsetId(namespace: string): Promise<string> {
+    return await createIndexedId(this.env, namespace, "boardset", true);
+  }
+
   @Operation
   async getBoardsets(): Promise<Response> {
     const boardsetsData = await this.getData();
@@ -52,31 +58,10 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
 
   @Operation
   @RequireParams<CreateBoardsetParams>("name")
-  async createBoardset(
-    params: CreateBoardsetParams,
-    request: Request,
-  ): Promise<Response> {
+  async createBoardset(params: CreateBoardsetParams, name: string): Promise<Response> {
     validateCurrency(params.currency);
 
-    // new indexer instance derived from this Boardsets instance's id as name:
-    const indexerId = this.env.INDEXER.idFromName(this.state.id.toString());
-    const indexerStub = this.env.INDEXER.get(indexerId);
-
-    const indexerResponse = await indexerStub.fetch(
-      request,
-      makeOperationRequest<Indexer, CreateIndexedIdParams>("createIndexedId", {
-        itemName: "boardset",
-      }),
-    );
-
-    if (!indexerResponse.ok) {
-      throw new Error("Indexer Error");
-    }
-
-    const createIndexedIdResult = await indexerResponse.json<CreateIndexedIdResult>();
-
-    // append namespace, so it becomes globally unique:
-    const newBoardsetId = this.state.id.toString() + "-" + createIndexedIdResult.itemId;
+    const newBoardsetId = await this.createBoardsetId(name);
 
     const newBoardset = {
       name: params.name,
@@ -85,7 +70,7 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
 
     await this.setData({ [newBoardsetId]: newBoardset });
 
-    return new HttpOKResponse<CreateBoardsetResult>(newBoardset);
+    return new HttpOKResponse<CreateBoardsetResult>({ [newBoardsetId]: newBoardset });
   }
 
   @Operation

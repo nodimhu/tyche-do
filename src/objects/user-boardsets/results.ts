@@ -4,6 +4,6 @@ export type GetBoardsetsResult = BoardsetsData;
 
 export type GetBoardsetResult = Boardset;
 
-export type CreateBoardsetResult = GetBoardsetResult;
+export type CreateBoardsetResult = Partial<BoardsetsData>;
 
 export type UpdateBoardsetResult = GetBoardsetResult;

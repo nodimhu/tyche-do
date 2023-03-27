@@ -37,33 +37,45 @@ export default {
 
     const url = new URL(request.url);
 
-    const objName = url.searchParams.get("objName");
+    let name: string;
+    let requestJSON: JSONObject;
 
-    if (!objName) {
-      return new HttpBadRequestResponse("Missing query parameters: objName");
+    try {
+      requestJSON = await request.json<OperationRequestJSON>();
+
+      if (!isOperationRequestJSON(requestJSON)) {
+        return new HttpBadRequestResponse("Not Operation Request");
     }
 
+      name = requestJSON.name;
+    } catch (error) {
+      return new HttpBadRequestResponse("Malformed JSON");
+    }
+
+    let binding: DurableObjectNamespace;
+
     switch (url.pathname) {
-      case "/indexer": {
-        const indexerId = env.INDEXER.idFromName(objName);
-        const indexerStub = env.INDEXER.get(indexerId);
-        return await indexerStub.fetch(request);
+      case "/indexer":
+        binding = env.INDEXER;
+        break;
+      case "/user-boardsets":
+        binding = env.USER_BOARDSETS;
+        break;
+      case "/users":
+        if (name !== "root") {
+          return new HttpBadRequestResponse("ID Not Root");
       }
-      case "/user-boardsets": {
-        const boardsetsId = env.USER_BOARDSETS.idFromName(objName);
-        const boardsetsStub = env.USER_BOARDSETS.get(boardsetsId);
-        return await boardsetsStub.fetch(request);
-      }
-      case "/users": {
-        if (objName !== "root") {
-          return new HttpBadRequestResponse("ObjName Not Root");
-        }
-        const usersId = env.USERS.idFromName("root");
-        const usersStub = env.USERS.get(usersId);
-        return await usersStub.fetch(request);
-      }
+        binding = env.USERS;
+        break;
       default:
         return new HttpNotFoundResponse();
     }
+
+    return await fetchOperation(
+      binding,
+      name,
+      requestJSON.operation,
+      requestJSON.parameters,
+    );
   },
 };

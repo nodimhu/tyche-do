@@ -5,7 +5,7 @@ export type GetBoardsetParams = {
 };
 
 export type CreateBoardsetParams = {
-  name: Boardset["name"];
+  name: string;
 } & Partial<Boardset>;
 
 export type UpdateBoardsetParams = {

@@ -12,6 +12,7 @@ import { isOperationRequestJSON } from "./guards";
 export class DurableOperationObject implements DurableObject {
   protected state: DurableObjectState;
   protected env: Env;
+  protected binding: DurableObjectNamespace | undefined;
 
   constructor(state: DurableObjectState, env: Env) {
     this.state = state;
@@ -35,7 +36,14 @@ export class DurableOperationObject implements DurableObject {
       return new HttpBadRequestResponse("Not Operation Request");
     }
 
-    const { operation, parameters } = requestJSON;
+    const { name, operation, parameters } = requestJSON;
+
+    if (
+      !this.binding ||
+      this.state.id.toString() !== this.binding.idFromName(name).toString()
+    ) {
+      return new HttpBadRequestResponse("Name Mismatch Or Binding Not Defined");
+    }
 
     const operationFunction = this[operation as keyof this];
 
@@ -51,7 +59,7 @@ export class DurableOperationObject implements DurableObject {
     let returnValue: unknown;
 
     try {
-      operationResult = operationFunction.call(this, parameters ?? {}, request);
+      operationResult = operationFunction.call(this, parameters ?? {}, name);
 
       if (operationResult instanceof Promise) {
         returnValue = await operationResult;

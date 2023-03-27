@@ -1,7 +1,7 @@
 export class OperationError extends Error {
   name = "OperationError";
 
-  constructor(message: string) {
+  constructor(message?: string) {
     const constructedMessage = message || "Operation Error";
     super(constructedMessage);
   }
@@ -26,25 +26,3 @@ export class OperationParameterInvalidError extends OperationError {
     super(constructedMessage);
   }
 }
-
-// TODO: See decorators.
-
-// export class OperationSearchParameterRequiredError extends OperationError {
-//   name = "OperationSearchParameterRequiredError";
-
-//   constructor(message: string) {
-//     const constructedMessage =
-//       "Operation Search Parameter Required" + (message ? ": " + message : "");
-//     super(constructedMessage);
-//   }
-// }
-
-// export class OperationSearchParameterInvalidError extends OperationError {
-//   name = "OperationSearchParameterInvalidError";
-
-//   constructor(message: string) {
-//     const constructedMessage =
-//       "Operation Search Parameter Invalid" + (message ? ": " + message : "");
-//     super(constructedMessage);
-//   }
-// }
