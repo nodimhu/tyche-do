@@ -53,8 +53,8 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   }
 
   @Operation
-  @ValidateParams(getBoardsetValidator)
   @RequireParams<GetBoardsetParams>("boardsetId")
+  @ValidateParams(getBoardsetValidator)
   async getBoardset(params: GetBoardsetParams): Promise<Response> {
     const boardset = await this.getData(params.boardsetId);
 
@@ -66,8 +66,8 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   }
 
   @Operation
-  @ValidateParams(createBoardsetValidator)
   @RequireParams<CreateBoardsetParams>("name")
+  @ValidateParams(createBoardsetValidator)
   async createBoardset(params: CreateBoardsetParams, name: string): Promise<Response> {
     const newBoardsetId = await this.createBoardsetId(name);
 
@@ -109,8 +109,8 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   }
 
   @Operation
-  @ValidateParams(deleteBoardsetValidator)
   @RequireParams<DeleteBoardsetParams>("boardsetId")
+  @ValidateParams(deleteBoardsetValidator)
   async deleteBoardset(params: DeleteBoardsetParams): Promise<Response> {
     const boardset = await this.getData(params.boardsetId);
 

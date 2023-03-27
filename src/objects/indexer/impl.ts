@@ -20,8 +20,8 @@ export class Indexer extends DurableDataOperationObject<IndexerData>({}) {
   }
 
   @Operation
-  @ValidateParams(createIndexedIdValidator)
   @RequireParams<CreateIndexedIdParams>("itemName")
+  @ValidateParams(createIndexedIdValidator)
   async createIndexedId(params: CreateIndexedIdParams): Promise<Response> {
     const { counter: currentCounter } = (await this.getData(params.itemName)) ?? {
       counter: 0,
