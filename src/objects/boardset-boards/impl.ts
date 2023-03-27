@@ -2,8 +2,10 @@ import {
   DurableDataOperationObject,
   Operation,
 } from "../../common/durable-operation-object";
-import { RequireParams } from "../../common/durable-operation-object/decorators";
-import { OperationParameterInvalidError } from "../../common/durable-operation-object/errors";
+import {
+  RequireParams,
+  ValidateParams,
+} from "../../common/durable-operation-object/decorators";
 import { fetchOperation } from "../../common/durable-operation-object/helpers";
 import { hasOwnProperty } from "../../common/guards";
 import {
@@ -18,6 +20,11 @@ import { createIndexedId } from "../indexer/helpers";
 import { CreateBoardParams, DeleteBoardParams, GetBoardsParams } from "./params";
 import { CreateBoardResult, GetBoardsResult } from "./results";
 import { BoardsetBoardsData, DEFAULT_BOARDSET_BOARDS_DATA } from "./types";
+import {
+  createBoardValidator,
+  deleteBoardValidator,
+  getBoardsValidator,
+} from "./validators";
 
 // objName: <boardsetId> (from user-boardsets)
 export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsData>(
@@ -32,15 +39,8 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
   }
 
   @Operation
+  @ValidateParams(getBoardsValidator)
   async getBoards(params: GetBoardsParams): Promise<Response> {
-    if (
-      (params.year !== undefined && isNaN(Number(params.year))) ||
-      Number(params.year) < 1000 ||
-      Number(params.year) > 9999
-    ) {
-      throw new OperationParameterInvalidError("year");
-    }
-
     const boards = await this.getData("boards");
 
     if (params.year !== undefined) {
@@ -52,15 +52,8 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
 
   @Operation
   @RequireParams<CreateBoardParams>("year", "month")
+  @ValidateParams(createBoardValidator)
   async createBoard(params: CreateBoardParams, name: string): Promise<Response> {
-    if (params.year < 1000 || params.year > 9999) {
-      throw new OperationParameterInvalidError("year");
-    }
-
-    if (params.month < 1 || params.month > 12) {
-      throw new OperationParameterInvalidError("month");
-    }
-
     const boards = await this.getData("boards");
 
     if (
@@ -91,6 +84,7 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
 
   @Operation
   @RequireParams<DeleteBoardParams>("boardId")
+  @ValidateParams(deleteBoardValidator)
   async deleteBoard(params: DeleteBoardParams): Promise<Response> {
     const boards = await this.getData("boards");
 

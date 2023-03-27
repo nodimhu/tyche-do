@@ -2,7 +2,10 @@ import {
   DurableDataOperationObject,
   Operation,
 } from "../../common/durable-operation-object";
-import { RequireParams } from "../../common/durable-operation-object/decorators";
+import {
+  RequireParams,
+  ValidateParams,
+} from "../../common/durable-operation-object/decorators";
 import { fetchOperation } from "../../common/durable-operation-object/helpers";
 import {
   HttpNoContentResponse,
@@ -25,6 +28,12 @@ import {
   UpdateBoardsetResult,
 } from "./results";
 import { BoardsetsData } from "./types";
+import {
+  createBoardsetValidator,
+  deleteBoardsetValidator,
+  getBoardsetValidator,
+  updateBoardsetValidator,
+} from "./validators";
 
 // objName: <username>
 export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({}) {
@@ -44,6 +53,7 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   }
 
   @Operation
+  @ValidateParams(getBoardsetValidator)
   @RequireParams<GetBoardsetParams>("boardsetId")
   async getBoardset(params: GetBoardsetParams): Promise<Response> {
     const boardset = await this.getData(params.boardsetId);
@@ -56,6 +66,7 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   }
 
   @Operation
+  @ValidateParams(createBoardsetValidator)
   @RequireParams<CreateBoardsetParams>("name")
   async createBoardset(params: CreateBoardsetParams, name: string): Promise<Response> {
     const newBoardsetId = await this.createBoardsetId(name);
@@ -71,7 +82,8 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   }
 
   @Operation
-  @RequireParams<UpdateBoardsetParams>("boardsetId")
+  @RequireParams<UpdateBoardsetParams>("boardsetId", "boardset")
+  @ValidateParams(updateBoardsetValidator)
   async updateBoardset(params: UpdateBoardsetParams): Promise<Response> {
     const boardset = await this.getData(params.boardsetId);
 
@@ -79,11 +91,11 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
       return new HttpNotFoundResponse();
     }
 
-    if (params.boardset.name) {
+    if (params.boardset.name !== undefined) {
       boardset.name = params.boardset.name;
     }
 
-    if (params.boardset.currency) {
+    if (params.boardset.currency !== undefined) {
       boardset.currency = params.boardset.currency.toUpperCase();
     }
 
@@ -97,6 +109,7 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   }
 
   @Operation
+  @ValidateParams(deleteBoardsetValidator)
   @RequireParams<DeleteBoardsetParams>("boardsetId")
   async deleteBoardset(params: DeleteBoardsetParams): Promise<Response> {
     const boardset = await this.getData(params.boardsetId);
