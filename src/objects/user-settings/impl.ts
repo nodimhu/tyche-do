@@ -2,12 +2,13 @@ import {
   DurableDataOperationObject,
   Operation,
 } from "../../common/durable-operation-object";
-import { OperationParameterInvalidError } from "../../common/durable-operation-object/errors";
+import { ValidateParams } from "../../common/durable-operation-object/decorators";
 import { HttpNoContentResponse, HttpOKResponse } from "../../common/responses";
 
 import { UpdateUserSettingsParams } from "./params";
 import { GetUserSettingsResult, UpdateUserSettingsResult } from "./results";
 import { DEFAULT_USER_SETTINGS_DATA, UserSettingsData } from "./types";
+import { updateSettingsValidator } from "./validators";
 
 // objName: <username>
 export class UserSettings extends DurableDataOperationObject<UserSettingsData>(
@@ -25,33 +26,15 @@ export class UserSettings extends DurableDataOperationObject<UserSettingsData>(
   }
 
   @Operation
+  @ValidateParams(updateSettingsValidator)
   async updateSettings(params: UpdateUserSettingsParams): Promise<Response> {
     const userSettingsData = await this.getData();
 
-    if (params.defaultCurrency) {
-      // TODO: Do this in validator instead...
-      try {
-        new Intl.NumberFormat("en", {
-          style: "currency",
-          currency: params.defaultCurrency.toUpperCase(),
-        });
-      } catch (error) {
-        throw new OperationParameterInvalidError("defaultCurrency");
-      }
-      // ...up to this point.
-
+    if (params.defaultCurrency !== undefined) {
       userSettingsData.defaultCurrency = params.defaultCurrency.toUpperCase();
     }
 
-    if (params.locale) {
-      // TODO: Do this in validator instead...
-      try {
-        new Intl.Locale(params.locale);
-      } catch (error) {
-        throw new OperationParameterInvalidError("locale");
-      }
-      // ...up to this point.
-
+    if (params.locale !== undefined) {
       userSettingsData.locale = params.locale;
     }
 

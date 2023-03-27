@@ -3,6 +3,7 @@ import { validateParams } from "../../common/durable-operation-object/helpers";
 import {
   CreateUserParams,
   DeleteUserParams,
+  GetUserParams,
   UpdateUserParams,
   VerifyUserPasswordParams,
 } from "./params";
@@ -40,7 +41,7 @@ export function updateUserValidator(params: UpdateUserParams) {
   });
 }
 
-export function getOrDeleteUserValidator(params: DeleteUserParams) {
+export function getOrDeleteUserValidator(params: GetUserParams | DeleteUserParams) {
   validateParams({
     username: !!params.username && typeof params.username === "string",
   });
