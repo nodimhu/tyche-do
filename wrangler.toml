@@ -1,7 +1,7 @@
 name = "tyche-do"
 main = "src/index.ts"
 node_compat = true
-compatibility_date = "2023-03-12"
+compatibility_date = "2023-03-27"
 
 [durable_objects]
 bindings = [
