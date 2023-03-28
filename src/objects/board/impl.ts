@@ -2,7 +2,10 @@ import {
   DurableDataOperationObject,
   Operation,
 } from "../../common/durable-operation-object";
-import { RequireParams } from "../../common/durable-operation-object/decorators";
+import {
+  RequireParams,
+  ValidateParams,
+} from "../../common/durable-operation-object/decorators";
 import {
   HttpNoContentResponse,
   HttpNotFoundResponse,
@@ -27,6 +30,14 @@ import {
   UpdateTransactionResult,
 } from "./results";
 import { Account, BoardData, DEFAULT_BOARD_DATA, Transaction } from "./types";
+import {
+  createAccountValidator,
+  createTransactionValidator,
+  deleteAccountValidator,
+  deleteTransactionValidator,
+  updateAccountValidator,
+  updateTransactionValidator,
+} from "./validators";
 
 // objName: <boardId> (from boardset-boards)
 export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_DATA) {
@@ -54,11 +65,13 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
   }
 
   @Operation
+  @RequireParams<CreateAccountParams>("name")
+  @ValidateParams(createAccountValidator)
   async createAccount(params: CreateAccountParams): Promise<Response> {
     const newAccountId = await this.createNewAccountId();
 
     const newAccount: Account = {
-      name: params.name ?? "",
+      name: params.name,
       type: params.type,
       opening: params.opening ?? 0,
       closing: params.closing ?? 0,
@@ -78,6 +91,7 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
 
   @Operation
   @RequireParams<UpdateAccountParams>("accountId", "account")
+  @ValidateParams(updateAccountValidator)
   async updateAccount(params: UpdateAccountParams): Promise<Response> {
     const accounts = await this.getData("accounts");
 
@@ -91,11 +105,11 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
       return new HttpNotFoundResponse();
     }
 
-    if (params.account.name) {
+    if (params.account.name !== undefined) {
       account.name = params.account.name;
     }
 
-    if (params.account.type) {
+    if (params.account.type !== undefined && params.account.type !== null) {
       account.type = params.account.type;
     }
 
@@ -123,6 +137,7 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
 
   @Operation
   @RequireParams<DeleteAccountParams>("accountId")
+  @ValidateParams(deleteAccountValidator)
   async deleteAccount(params: DeleteAccountParams): Promise<Response> {
     const accounts = await this.getData("accounts");
 
@@ -151,14 +166,15 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
   }
 
   @Operation
-  @RequireParams<CreateTransactionParams>("type")
+  @RequireParams<CreateTransactionParams>("type", "description")
+  @ValidateParams(createTransactionValidator)
   async createTransaction(params: CreateTransactionParams): Promise<Response> {
     const newTransactionId = await this.createIndexedId("transaction");
 
     const newTransaction: Transaction = {
       amount: params.amount ?? 0,
       cadence: params.cadence ?? "single",
-      description: params.description ?? "",
+      description: params.description,
       type: params.type,
     };
 
@@ -178,6 +194,7 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
 
   @Operation
   @RequireParams<UpdateTransactionParams>("transactionId", "transaction")
+  @ValidateParams(updateTransactionValidator)
   async updateTransaction(params: UpdateTransactionParams): Promise<Response> {
     const transactions = await this.getData("transactions");
 
@@ -191,15 +208,15 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
       return new HttpNotFoundResponse();
     }
 
-    if (params.transaction.description) {
+    if (params.transaction.description !== undefined) {
       transaction.description = params.transaction.description;
     }
 
-    if (params.transaction.type) {
+    if (params.transaction.type !== undefined) {
       transaction.type = params.transaction.type;
     }
 
-    if (params.transaction.cadence) {
+    if (params.transaction.cadence !== undefined) {
       transaction.cadence = params.transaction.cadence;
     }
 
@@ -219,6 +236,7 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
 
   @Operation
   @RequireParams<DeleteTransactionParams>("transactionId")
+  @ValidateParams(deleteTransactionValidator)
   async deleteTransaction(params: DeleteTransactionParams): Promise<Response> {
     const transactions = await this.getData("transactions");
 

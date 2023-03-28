@@ -1,9 +1,12 @@
 import { Account, Transaction } from "./types";
 
-export type CreateAccountParams = Partial<Account>;
+export type CreateAccountParams = {
+  name: string;
+} & Partial<Account>;
 
 export type CreateTransactionParams = {
   type: Transaction["type"];
+  description: string;
 } & Partial<Transaction>;
 
 export type UpdateAccountParams = {
