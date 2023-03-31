@@ -50,8 +50,8 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
-  @ValidateParams(getOrDeleteUserValidator)
   @RequireParams<GetUserParams>("username")
+  @ValidateParams(getOrDeleteUserValidator)
   async getUser(params: GetUserParams): Promise<Response> {
     const user = await this.getData(params.username);
 
@@ -63,8 +63,8 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
-  @ValidateParams(createUserValidator)
   @RequireParams<CreateUserParams>("username", "password", "email")
+  @ValidateParams(createUserValidator)
   async createUser(params: CreateUserParams): Promise<Response> {
     const existingUser = await this.getData(params.username);
 
@@ -84,8 +84,8 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
-  @ValidateParams(updateUserValidator)
   @RequireParams<UpdateUserParams>("username", "user")
+  @ValidateParams(updateUserValidator)
   async updateUser(params: UpdateUserParams): Promise<Response> {
     const user = await this.getData(params.username);
 
@@ -115,8 +115,8 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
-  @ValidateParams(getOrDeleteUserValidator)
   @RequireParams<DeleteUserParams>("username")
+  @ValidateParams(getOrDeleteUserValidator)
   async deleteUser(params: DeleteUserParams): Promise<Response> {
     const user = await this.getData(params.username);
 
@@ -141,8 +141,8 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
-  @ValidateParams(verifyUserPasswordValidator)
   @RequireParams<VerifyUserPasswordParams>("username", "password")
+  @ValidateParams(verifyUserPasswordValidator)
   async verifyUserPassword(params: VerifyUserPasswordParams): Promise<Response> {
     const userInfo = await this.getData(params.username);
 
@@ -154,6 +154,6 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
       return new HttpUnauthorizedResponse();
     }
 
-    return new HttpOKResponse();
+    return new HttpNoContentResponse();
   }
 }
