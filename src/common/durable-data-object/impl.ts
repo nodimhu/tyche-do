@@ -15,7 +15,7 @@ export abstract class DurableDataObject<Data extends JSONObject>
   constructor(state: DurableObjectState, env: Env, private defaultData: Data) {
     this.state = state;
     this.env = env;
-    this.data = { ...defaultData };
+    this.data = JSON.parse(JSON.stringify(defaultData));
 
     if (!this.LAZY_LOAD) {
       this.state.blockConcurrencyWhile(async () => {
