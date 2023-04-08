@@ -37,8 +37,12 @@ export function updateAccountValidator(params: UpdateAccountParams) {
       params.account.type === "checking" ||
       params.account.type === "investment" ||
       params.account.type === "savings",
-    "account.opening": typeof params.account.opening === "number",
-    "account.closing": typeof params.account.closing === "number",
+    "account.opening":
+      params.account.opening === undefined ||
+      typeof params.account.opening === "number",
+    "account.closing":
+      params.account.closing === undefined ||
+      typeof params.account.closing === "number",
   });
 }
 
