@@ -55,7 +55,7 @@ export function createTransactionValidator(params: CreateTransactionParams) {
     cadence:
       params.cadence === undefined ||
       params.cadence === "recurring" ||
-      params.cadence === "single",
+      params.cadence === "occasional",
     amount: typeof params.amount === "number",
   });
 }
@@ -75,7 +75,7 @@ export function updateTransactionValidator(params: UpdateTransactionParams) {
     "transaction.cadence":
       params.transaction.cadence === undefined ||
       params.transaction.cadence === "recurring" ||
-      params.transaction.cadence === "single",
+      params.transaction.cadence === "occasional",
     "transaction.amount":
       params.transaction.amount === undefined ||
       typeof params.transaction.amount === "number",

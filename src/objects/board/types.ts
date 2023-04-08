@@ -8,7 +8,7 @@ export type Account = {
 export type Transaction = {
   description: string;
   type: "income" | "expense";
-  cadence: "recurring" | "single";
+  cadence: "recurring" | "occasional";
   amount: number;
 };
 

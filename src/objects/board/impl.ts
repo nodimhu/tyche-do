@@ -173,7 +173,7 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
 
     const newTransaction: Transaction = {
       amount: params.amount ?? 0,
-      cadence: params.cadence ?? "single",
+      cadence: params.cadence ?? "occasional",
       description: params.description,
       type: params.type,
     };
