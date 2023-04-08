@@ -17,13 +17,18 @@ import {
 
 import { Board } from "../board";
 import { createIndexedId } from "../indexer/helpers";
-import { CreateBoardParams, DeleteBoardParams, GetBoardsParams } from "./params";
+import {
+  CreateBoardParams,
+  DeleteBoardParams,
+  GetBoardParams,
+  GetBoardsParams,
+} from "./params";
 import { CreateBoardResult, GetBoardsResult } from "./results";
 import { BoardsetBoardsData, DEFAULT_BOARDSET_BOARDS_DATA } from "./types";
 import {
   createBoardValidator,
-  deleteBoardValidator,
   getBoardsValidator,
+  getOrDeleteBoardValidator,
 } from "./validators";
 
 // objName: <boardsetId> (from user-boardsets)
@@ -44,10 +49,32 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
     const boards = await this.getData("boards");
 
     if (params.year !== undefined) {
-      return new HttpOKResponse({ [params.year]: boards[params.year] ?? [] });
+      return new HttpOKResponse<GetBoardsResult>({
+        [params.year]: boards[params.year] ?? [],
+      });
     }
 
     return new HttpOKResponse<GetBoardsResult>(boards);
+  }
+
+  @Operation
+  @RequireParams<GetBoardParams>("boardId")
+  @ValidateParams(getOrDeleteBoardValidator)
+  async getBoard(params: GetBoardParams): Promise<Response> {
+    const boards = await this.getData("boards");
+
+    const [year, yearBoards] =
+      Object.entries(boards).find(([_year, yearBoards]) =>
+        Object.keys(yearBoards).find((boardId) => boardId === params.boardId),
+      ) ?? [];
+
+    if (!year || !yearBoards || !yearBoards[params.boardId]) {
+      return new HttpNotFoundResponse();
+    }
+
+    return new HttpOKResponse<GetBoardsResult>({
+      [year]: { [params.boardId]: yearBoards[params.boardId] },
+    });
   }
 
   @Operation
@@ -84,7 +111,7 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
 
   @Operation
   @RequireParams<DeleteBoardParams>("boardId")
-  @ValidateParams(deleteBoardValidator)
+  @ValidateParams(getOrDeleteBoardValidator)
   async deleteBoard(params: DeleteBoardParams): Promise<Response> {
     const boards = await this.getData("boards");
 

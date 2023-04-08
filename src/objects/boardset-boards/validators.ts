@@ -1,6 +1,11 @@
 import { validateParams } from "../../common/durable-operation-object/helpers";
 
-import { CreateBoardParams, DeleteBoardParams, GetBoardsParams } from "./params";
+import {
+  CreateBoardParams,
+  DeleteBoardParams,
+  GetBoardParams,
+  GetBoardsParams,
+} from "./params";
 
 export function getBoardsValidator(params: GetBoardsParams) {
   validateParams({
@@ -17,7 +22,7 @@ export function createBoardValidator(params: CreateBoardParams) {
   });
 }
 
-export function deleteBoardValidator(params: DeleteBoardParams) {
+export function getOrDeleteBoardValidator(params: GetBoardParams | DeleteBoardParams) {
   validateParams({
     boardId: !!params.boardId && typeof params.boardId === "string",
   });
