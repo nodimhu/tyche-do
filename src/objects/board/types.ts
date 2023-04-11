@@ -20,12 +20,20 @@ export type Transactions = {
   [transactionId: string]: Transaction;
 };
 
+export type Parameters = {
+  savingsGoalPercentage: number;
+};
+
 export type BoardData = {
   accounts: Accounts;
   transactions: Transactions;
+  parameters: Parameters;
 };
 
 export const DEFAULT_BOARD_DATA: BoardData = {
   accounts: {},
   transactions: {},
+  parameters: {
+    savingsGoalPercentage: 0,
+  },
 };

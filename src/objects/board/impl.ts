@@ -19,6 +19,7 @@ import {
   DeleteAccountParams,
   DeleteTransactionParams,
   UpdateAccountParams,
+  UpdateParametersParams,
   UpdateTransactionParams,
 } from "./params";
 import {
@@ -36,6 +37,7 @@ import {
   deleteAccountValidator,
   deleteTransactionValidator,
   updateAccountValidator,
+  updateParametersValidator,
   updateTransactionValidator,
 } from "./validators";
 
@@ -255,6 +257,23 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
     await this.setData({ transactions: transactions });
 
     return new HttpNoContentResponse();
+  }
+
+  @Operation
+  async getParameters(): Promise<Response> {
+    return new HttpOKResponse(await this.getData("parameters"));
+  }
+
+  @Operation
+  @ValidateParams(updateParametersValidator)
+  async updateParameters(params: UpdateParametersParams): Promise<Response> {
+    const parameters = await this.getData("parameters");
+
+    Object.assign(parameters, params);
+
+    await this.setData({ parameters });
+
+    return new HttpOKResponse(parameters);
   }
 
   @Operation

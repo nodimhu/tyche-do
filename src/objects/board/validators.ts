@@ -6,6 +6,7 @@ import {
   DeleteAccountParams,
   DeleteTransactionParams,
   UpdateAccountParams,
+  UpdateParametersParams,
   UpdateTransactionParams,
 } from "./params";
 
@@ -60,7 +61,7 @@ export function createTransactionValidator(params: CreateTransactionParams) {
       params.cadence === undefined ||
       params.cadence === "recurring" ||
       params.cadence === "occasional",
-    amount: typeof params.amount === "number",
+    amount: params.amount === undefined || typeof params.amount === "number",
   });
 }
 
@@ -89,5 +90,13 @@ export function updateTransactionValidator(params: UpdateTransactionParams) {
 export function deleteTransactionValidator(params: DeleteTransactionParams) {
   validateParams({
     transactionId: !!params.transactionId && typeof params.transactionId === "string",
+  });
+}
+
+export function updateParametersValidator(params: UpdateParametersParams) {
+  validateParams({
+    savingsGoalPercentage:
+      params.savingsGoalPercentage === undefined ||
+      typeof params.savingsGoalPercentage === "number",
   });
 }

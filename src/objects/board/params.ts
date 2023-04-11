@@ -1,4 +1,4 @@
-import { Account, Transaction } from "./types";
+import { Account, Parameters, Transaction } from "./types";
 
 export type CreateAccountParams = {
   name: string;
@@ -28,3 +28,5 @@ export type DeleteAccountParams = {
 export type DeleteTransactionParams = {
   transactionId: string;
 };
+
+export type UpdateParametersParams = Partial<Parameters>;
