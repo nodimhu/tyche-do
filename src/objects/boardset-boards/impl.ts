@@ -16,16 +16,28 @@ import {
 } from "../../common/responses";
 
 import { Board } from "../board";
+import {
+  CreateAccountParams,
+  CreateTransactionParams,
+  UpdateParametersParams,
+} from "../board/params";
+import {
+  GetAccountsResult,
+  GetParametersResult,
+  GetTransactionsResult,
+} from "../board/results";
 import { createIndexedId } from "../indexer/helpers";
 import {
+  CopyBoardParams,
   CreateBoardParams,
   DeleteBoardParams,
   GetBoardParams,
   GetBoardsParams,
 } from "./params";
-import { CreateBoardResult, GetBoardsResult } from "./results";
+import { CopyBoardResult, CreateBoardResult, GetBoardsResult } from "./results";
 import { BoardsetBoardsData, DEFAULT_BOARDSET_BOARDS_DATA } from "./types";
 import {
+  copyBoardValidator,
   createBoardValidator,
   getBoardsValidator,
   getOrDeleteBoardValidator,
@@ -107,6 +119,108 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
     return new HttpOKResponse<CreateBoardResult>({
       [params.year]: boards[params.year] ?? [],
     });
+  }
+
+  @Operation
+  @RequireParams<CopyBoardParams>("boardId", "year", "month")
+  @ValidateParams(copyBoardValidator)
+  async copyBoard(params: CopyBoardParams, name: string): Promise<Response> {
+    const createResponse = await fetchOperation<BoardsetBoards, CreateBoardParams>(
+      this.env.BOARDSET_BOARDS,
+      name,
+      "createBoard",
+      { year: params.year, month: params.month },
+    );
+
+    if (!createResponse.ok) {
+      return createResponse;
+    }
+
+    const sourceBoardId = params.boardId;
+
+    const newBoardResult = await createResponse.json<CreateBoardResult>();
+
+    const [newBoardId] = Object.entries(newBoardResult[params.year]).find(
+      ([_, board]) => board.month === params.month,
+    ) ?? [undefined];
+
+    if (!newBoardId) {
+      throw new Error("Board creation failed");
+    }
+
+    const sourceBoardAccountsResponse = await fetchOperation<Board>(
+      this.env.BOARD,
+      sourceBoardId,
+      "getAccounts",
+    );
+
+    if (!sourceBoardAccountsResponse.ok) {
+      return sourceBoardAccountsResponse;
+    }
+
+    const sourceBoardTransactionsResponse = await fetchOperation<Board>(
+      this.env.BOARD,
+      sourceBoardId,
+      "getTransactions",
+    );
+
+    if (!sourceBoardTransactionsResponse.ok) {
+      return sourceBoardTransactionsResponse;
+    }
+
+    const sourceBoardParametersResponse = await fetchOperation<Board>(
+      this.env.BOARD,
+      sourceBoardId,
+      "getParameters",
+    );
+
+    if (!sourceBoardParametersResponse) {
+      return sourceBoardParametersResponse;
+    }
+
+    const sourceBoardAccounts =
+      await sourceBoardAccountsResponse.json<GetAccountsResult>();
+    const sourceBoardTransactions =
+      await sourceBoardTransactionsResponse.json<GetTransactionsResult>();
+    const sourceBoardParameters =
+      await sourceBoardParametersResponse.json<GetParametersResult>();
+
+    for (const account of Object.values(sourceBoardAccounts)) {
+      await fetchOperation<Board, CreateAccountParams>(
+        this.env.BOARD,
+        newBoardId,
+        "createAccount",
+        { ...account, opening: account.closing },
+      );
+    }
+
+    for (const transaction of Object.values(sourceBoardTransactions)) {
+      if (transaction.cadence !== "recurring") {
+        continue;
+      }
+
+      await fetchOperation<Board, CreateTransactionParams>(
+        this.env.BOARD,
+        newBoardId,
+        "createTransaction",
+        {
+          ...transaction,
+          amount: transaction.type === "income" ? 0 : transaction.amount,
+        },
+      );
+    }
+
+    await fetchOperation<Board, UpdateParametersParams>(
+      this.env.BOARD,
+      newBoardId,
+      "updateParameters",
+      { ...sourceBoardParameters },
+    );
+
+    console.log("source board:", sourceBoardId);
+    console.log("new board:", newBoardId);
+
+    return new HttpOKResponse<CopyBoardResult>(newBoardResult);
   }
 
   @Operation
