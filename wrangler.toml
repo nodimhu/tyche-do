@@ -1,4 +1,4 @@
-name = "tyche-do"
+name = "tyche-do-sveltehack"
 main = "src/index.ts"
 node_compat = true
 compatibility_date = "2023-03-27"
@@ -15,16 +15,4 @@ bindings = [
 
 [[migrations]]
 tag = "v1"
-new_classes = ["Users"]
-
-[[migrations]]
-tag = "v2"
-new_classes = ["Indexer"]
-
-[[migrations]]
-tag = "v3"
-new_classes = ["UserBoardsets"]
-
-[[migrations]]
-tag = "v4"
-new_classes = ["Board", "BoardsetBoards", "UserSettings"]
+new_classes = ["Board", "BoardsetBoards", "Indexer", "UserBoardsets", "UserSettings", "Users"]
