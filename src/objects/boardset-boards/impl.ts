@@ -217,9 +217,6 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
       { ...sourceBoardParameters },
     );
 
-    console.log("source board:", sourceBoardId);
-    console.log("new board:", newBoardId);
-
     return new HttpOKResponse<CopyBoardResult>(newBoardResult);
   }
 
