@@ -14,5 +14,5 @@ bindings = [
 ]
 
 [[migrations]]
-tag = "v1"
+tag = "v1.0.0"
 new_classes = ["Board", "BoardsetBoards", "Indexer", "UserBoardsets", "UserSettings", "Users"]
