@@ -14,24 +14,6 @@ import {
 
 import { createIndexedId } from "../indexer/helpers";
 import {
-  CreateAccountParams,
-  CreateTransactionParams,
-  DeleteAccountParams,
-  DeleteTransactionParams,
-  UpdateAccountParams,
-  UpdateParametersParams,
-  UpdateTransactionParams,
-} from "./params";
-import {
-  CreateAccountResult,
-  CreateTransactionResult,
-  GetAccountsResult,
-  GetTransactionsResult,
-  UpdateAccountResult,
-  UpdateTransactionResult,
-} from "./results";
-import { Account, BoardData, DEFAULT_BOARD_DATA, Transaction } from "./types";
-import {
   createAccountValidator,
   createTransactionValidator,
   deleteAccountValidator,
@@ -41,8 +23,18 @@ import {
   updateTransactionValidator,
 } from "./validators";
 
+const DEFAULT_BOARD_DATA: TycheDO.Board.BoardData = {
+  accounts: {},
+  transactions: {},
+  parameters: {
+    savingsGoalPercentage: 0,
+  },
+};
+
 // objName: <boardId> (from boardset-boards)
-export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_DATA) {
+export class Board extends DurableDataOperationObject<TycheDO.Board.BoardData>(
+  DEFAULT_BOARD_DATA,
+) {
   protected get binding(): DurableObjectNamespace {
     return this.env.BOARD;
   }
@@ -63,16 +55,16 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
   async getAccounts(): Promise<Response> {
     const accounts = (await this.getData("accounts")) ?? {};
 
-    return new HttpOKResponse<GetAccountsResult>(accounts);
+    return new HttpOKResponse<TycheDO.Board.GetAccountsResult>(accounts);
   }
 
   @Operation
-  @RequireParams<CreateAccountParams>("name")
+  @RequireParams<TycheDO.Board.CreateAccountParams>("name")
   @ValidateParams(createAccountValidator)
-  async createAccount(params: CreateAccountParams): Promise<Response> {
+  async createAccount(params: TycheDO.Board.CreateAccountParams): Promise<Response> {
     const newAccountId = await this.createNewAccountId();
 
-    const newAccount: Account = {
+    const newAccount: TycheDO.Board.Account = {
       name: params.name,
       type: params.type,
       opening: params.opening ?? 0,
@@ -88,13 +80,15 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
       },
     });
 
-    return new HttpOKResponse<CreateAccountResult>({ [newAccountId]: newAccount });
+    return new HttpOKResponse<TycheDO.Board.CreateAccountResult>({
+      [newAccountId]: newAccount,
+    });
   }
 
   @Operation
-  @RequireParams<UpdateAccountParams>("accountId", "account")
+  @RequireParams<TycheDO.Board.UpdateAccountParams>("accountId", "account")
   @ValidateParams(updateAccountValidator)
-  async updateAccount(params: UpdateAccountParams): Promise<Response> {
+  async updateAccount(params: TycheDO.Board.UpdateAccountParams): Promise<Response> {
     const accounts = await this.getData("accounts");
 
     if (!accounts) {
@@ -134,13 +128,13 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
       },
     });
 
-    return new HttpOKResponse<UpdateAccountResult>(account);
+    return new HttpOKResponse<TycheDO.Board.UpdateAccountResult>(account);
   }
 
   @Operation
-  @RequireParams<DeleteAccountParams>("accountId")
+  @RequireParams<TycheDO.Board.DeleteAccountParams>("accountId")
   @ValidateParams(deleteAccountValidator)
-  async deleteAccount(params: DeleteAccountParams): Promise<Response> {
+  async deleteAccount(params: TycheDO.Board.DeleteAccountParams): Promise<Response> {
     const accounts = await this.getData("accounts");
 
     if (!accounts) {
@@ -164,16 +158,18 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
   async getTransactions(): Promise<Response> {
     const transactions = (await this.getData("transactions")) ?? {};
 
-    return new HttpOKResponse<GetTransactionsResult>(transactions);
+    return new HttpOKResponse<TycheDO.Board.GetTransactionsResult>(transactions);
   }
 
   @Operation
-  @RequireParams<CreateTransactionParams>("type", "description")
+  @RequireParams<TycheDO.Board.CreateTransactionParams>("type", "description")
   @ValidateParams(createTransactionValidator)
-  async createTransaction(params: CreateTransactionParams): Promise<Response> {
+  async createTransaction(
+    params: TycheDO.Board.CreateTransactionParams,
+  ): Promise<Response> {
     const newTransactionId = await this.createIndexedId("transaction");
 
-    const newTransaction: Transaction = {
+    const newTransaction: TycheDO.Board.Transaction = {
       amount: params.amount ?? 0,
       cadence: params.cadence ?? "occasional",
       description: params.description,
@@ -189,15 +185,17 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
       },
     });
 
-    return new HttpOKResponse<CreateTransactionResult>({
+    return new HttpOKResponse<TycheDO.Board.CreateTransactionResult>({
       [newTransactionId]: newTransaction,
     });
   }
 
   @Operation
-  @RequireParams<UpdateTransactionParams>("transactionId", "transaction")
+  @RequireParams<TycheDO.Board.UpdateTransactionParams>("transactionId", "transaction")
   @ValidateParams(updateTransactionValidator)
-  async updateTransaction(params: UpdateTransactionParams): Promise<Response> {
+  async updateTransaction(
+    params: TycheDO.Board.UpdateTransactionParams,
+  ): Promise<Response> {
     const transactions = await this.getData("transactions");
 
     if (!transactions) {
@@ -233,13 +231,15 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
       },
     });
 
-    return new HttpOKResponse<UpdateTransactionResult>(transaction);
+    return new HttpOKResponse<TycheDO.Board.UpdateTransactionResult>(transaction);
   }
 
   @Operation
-  @RequireParams<DeleteTransactionParams>("transactionId")
+  @RequireParams<TycheDO.Board.DeleteTransactionParams>("transactionId")
   @ValidateParams(deleteTransactionValidator)
-  async deleteTransaction(params: DeleteTransactionParams): Promise<Response> {
+  async deleteTransaction(
+    params: TycheDO.Board.DeleteTransactionParams,
+  ): Promise<Response> {
     const transactions = await this.getData("transactions");
 
     if (!transactions) {
@@ -266,7 +266,9 @@ export class Board extends DurableDataOperationObject<BoardData>(DEFAULT_BOARD_D
 
   @Operation
   @ValidateParams(updateParametersValidator)
-  async updateParameters(params: UpdateParametersParams): Promise<Response> {
+  async updateParameters(
+    params: TycheDO.Board.UpdateParametersParams,
+  ): Promise<Response> {
     const parameters = await this.getData("parameters");
 
     Object.assign(parameters, params);

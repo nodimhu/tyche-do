@@ -1,14 +1,6 @@
 import { validateParams } from "../../common/durable-operation-object/helpers";
 
-import {
-  CreateUserParams,
-  DeleteUserParams,
-  GetUserParams,
-  UpdateUserParams,
-  VerifyUserPasswordParams,
-} from "./params";
-
-export function createUserValidator(params: CreateUserParams) {
+export function createUserValidator(params: TycheDO.Users.CreateUserParams) {
   validateParams({
     displayName:
       params.displayName === undefined || typeof params.displayName === "string",
@@ -18,7 +10,7 @@ export function createUserValidator(params: CreateUserParams) {
   });
 }
 
-export function updateUserValidator(params: UpdateUserParams) {
+export function updateUserValidator(params: TycheDO.Users.UpdateUserParams) {
   validateParams({
     username: !!params.username && typeof params.username === "string",
     user: !!params.user && typeof params.user === "object",
@@ -32,13 +24,17 @@ export function updateUserValidator(params: UpdateUserParams) {
   });
 }
 
-export function getOrDeleteUserValidator(params: GetUserParams | DeleteUserParams) {
+export function getOrDeleteUserValidator(
+  params: TycheDO.Users.GetUserParams | TycheDO.Users.DeleteUserParams,
+) {
   validateParams({
     username: !!params.username && typeof params.username === "string",
   });
 }
 
-export function verifyUserPasswordValidator(params: VerifyUserPasswordParams) {
+export function verifyUserPasswordValidator(
+  params: TycheDO.Users.VerifyUserPasswordParams,
+) {
   validateParams({
     password: !!params.password && typeof params.password === "string",
     username: !!params.username && typeof params.username === "string",

@@ -6,7 +6,6 @@ import {
   HttpNotFoundResponse,
   HttpUnauthorizedResponse,
 } from "./common/responses";
-import { JSONObject } from "./common/types";
 
 declare global {
   interface Env {

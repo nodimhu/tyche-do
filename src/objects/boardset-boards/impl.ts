@@ -16,26 +16,7 @@ import {
 } from "../../common/responses";
 
 import { Board } from "../board";
-import {
-  CreateAccountParams,
-  CreateTransactionParams,
-  UpdateParametersParams,
-} from "../board/params";
-import {
-  GetAccountsResult,
-  GetParametersResult,
-  GetTransactionsResult,
-} from "../board/results";
 import { createIndexedId } from "../indexer/helpers";
-import {
-  CopyBoardParams,
-  CreateBoardParams,
-  DeleteBoardParams,
-  GetBoardParams,
-  GetBoardsParams,
-} from "./params";
-import { CopyBoardResult, CreateBoardResult, GetBoardsResult } from "./results";
-import { BoardsetBoardsData, DEFAULT_BOARDSET_BOARDS_DATA } from "./types";
 import {
   copyBoardValidator,
   createBoardValidator,
@@ -43,8 +24,12 @@ import {
   getOrDeleteBoardValidator,
 } from "./validators";
 
+const DEFAULT_BOARDSET_BOARDS_DATA: TycheDO.BoardsetBoards.BoardsetBoardsData = {
+  boards: {},
+};
+
 // objName: <boardsetId> (from user-boardsets)
-export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsData>(
+export class BoardsetBoards extends DurableDataOperationObject<TycheDO.BoardsetBoards.BoardsetBoardsData>(
   DEFAULT_BOARDSET_BOARDS_DATA,
 ) {
   protected get binding(): DurableObjectNamespace {
@@ -57,22 +42,22 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
 
   @Operation
   @ValidateParams(getBoardsValidator)
-  async getBoards(params: GetBoardsParams): Promise<Response> {
+  async getBoards(params: TycheDO.BoardsetBoards.GetBoardsParams): Promise<Response> {
     const boards = await this.getData("boards");
 
     if (params.year !== undefined) {
-      return new HttpOKResponse<GetBoardsResult>({
+      return new HttpOKResponse<TycheDO.BoardsetBoards.GetBoardsResult>({
         [params.year]: boards[params.year] ?? [],
       });
     }
 
-    return new HttpOKResponse<GetBoardsResult>(boards);
+    return new HttpOKResponse<TycheDO.BoardsetBoards.GetBoardsResult>(boards);
   }
 
   @Operation
-  @RequireParams<GetBoardParams>("boardId")
+  @RequireParams<TycheDO.BoardsetBoards.GetBoardParams>("boardId")
   @ValidateParams(getOrDeleteBoardValidator)
-  async getBoard(params: GetBoardParams): Promise<Response> {
+  async getBoard(params: TycheDO.BoardsetBoards.GetBoardParams): Promise<Response> {
     const boards = await this.getData("boards");
 
     const [year, yearBoards] =
@@ -84,15 +69,18 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
       return new HttpNotFoundResponse();
     }
 
-    return new HttpOKResponse<GetBoardsResult>({
+    return new HttpOKResponse<TycheDO.BoardsetBoards.GetBoardsResult>({
       [year]: { [params.boardId]: yearBoards[params.boardId] },
     });
   }
 
   @Operation
-  @RequireParams<CreateBoardParams>("year", "month")
+  @RequireParams<TycheDO.BoardsetBoards.CreateBoardParams>("year", "month")
   @ValidateParams(createBoardValidator)
-  async createBoard(params: CreateBoardParams, name: string): Promise<Response> {
+  async createBoard(
+    params: TycheDO.BoardsetBoards.CreateBoardParams,
+    name: string,
+  ): Promise<Response> {
     const boards = await this.getData("boards");
 
     if (
@@ -116,21 +104,25 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
 
     await this.setData({ boards });
 
-    return new HttpOKResponse<CreateBoardResult>({
+    return new HttpOKResponse<TycheDO.BoardsetBoards.CreateBoardResult>({
       [params.year]: boards[params.year] ?? [],
     });
   }
 
   @Operation
-  @RequireParams<CopyBoardParams>("boardId", "year", "month")
+  @RequireParams<TycheDO.BoardsetBoards.CopyBoardParams>("boardId", "year", "month")
   @ValidateParams(copyBoardValidator)
-  async copyBoard(params: CopyBoardParams, name: string): Promise<Response> {
-    const createResponse = await fetchOperation<BoardsetBoards, CreateBoardParams>(
-      this.env.BOARDSET_BOARDS,
-      name,
-      "createBoard",
-      { year: params.year, month: params.month },
-    );
+  async copyBoard(
+    params: TycheDO.BoardsetBoards.CopyBoardParams,
+    name: string,
+  ): Promise<Response> {
+    const createResponse = await fetchOperation<
+      BoardsetBoards,
+      TycheDO.BoardsetBoards.CreateBoardParams
+    >(this.env.BOARDSET_BOARDS, name, "createBoard", {
+      year: params.year,
+      month: params.month,
+    });
 
     if (!createResponse.ok) {
       return createResponse;
@@ -138,7 +130,8 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
 
     const sourceBoardId = params.boardId;
 
-    const newBoardResult = await createResponse.json<CreateBoardResult>();
+    const newBoardResult =
+      await createResponse.json<TycheDO.BoardsetBoards.CreateBoardResult>();
 
     const [newBoardId] = Object.entries(newBoardResult[params.year]).find(
       ([_, board]) => board.month === params.month,
@@ -179,14 +172,14 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
     }
 
     const sourceBoardAccounts =
-      await sourceBoardAccountsResponse.json<GetAccountsResult>();
+      await sourceBoardAccountsResponse.json<TycheDO.Board.GetAccountsResult>();
     const sourceBoardTransactions =
-      await sourceBoardTransactionsResponse.json<GetTransactionsResult>();
+      await sourceBoardTransactionsResponse.json<TycheDO.Board.GetTransactionsResult>();
     const sourceBoardParameters =
-      await sourceBoardParametersResponse.json<GetParametersResult>();
+      await sourceBoardParametersResponse.json<TycheDO.Board.GetParametersResult>();
 
     for (const account of Object.values(sourceBoardAccounts)) {
-      await fetchOperation<Board, CreateAccountParams>(
+      await fetchOperation<Board, TycheDO.Board.CreateAccountParams>(
         this.env.BOARD,
         newBoardId,
         "createAccount",
@@ -199,7 +192,7 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
         continue;
       }
 
-      await fetchOperation<Board, CreateTransactionParams>(
+      await fetchOperation<Board, TycheDO.Board.CreateTransactionParams>(
         this.env.BOARD,
         newBoardId,
         "createTransaction",
@@ -210,20 +203,22 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
       );
     }
 
-    await fetchOperation<Board, UpdateParametersParams>(
+    await fetchOperation<Board, TycheDO.Board.UpdateParametersParams>(
       this.env.BOARD,
       newBoardId,
       "updateParameters",
       { ...sourceBoardParameters },
     );
 
-    return new HttpOKResponse<CopyBoardResult>(newBoardResult);
+    return new HttpOKResponse<TycheDO.BoardsetBoards.CopyBoardResult>(newBoardResult);
   }
 
   @Operation
-  @RequireParams<DeleteBoardParams>("boardId")
+  @RequireParams<TycheDO.BoardsetBoards.DeleteBoardParams>("boardId")
   @ValidateParams(getOrDeleteBoardValidator)
-  async deleteBoard(params: DeleteBoardParams): Promise<Response> {
+  async deleteBoard(
+    params: TycheDO.BoardsetBoards.DeleteBoardParams,
+  ): Promise<Response> {
     const boards = await this.getData("boards");
 
     const [year, yearBoards] =
@@ -264,7 +259,7 @@ export class BoardsetBoards extends DurableDataOperationObject<BoardsetBoardsDat
 
     await Promise.all(
       allBoardIds.map((boardId) =>
-        fetchOperation<BoardsetBoards, DeleteBoardParams>(
+        fetchOperation<BoardsetBoards, TycheDO.BoardsetBoards.DeleteBoardParams>(
           this.binding,
           name,
           "deleteBoard",

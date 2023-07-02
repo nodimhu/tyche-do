@@ -1,16 +1,6 @@
 import { validateParams } from "../../common/durable-operation-object/helpers";
 
-import {
-  CreateAccountParams,
-  CreateTransactionParams,
-  DeleteAccountParams,
-  DeleteTransactionParams,
-  UpdateAccountParams,
-  UpdateParametersParams,
-  UpdateTransactionParams,
-} from "./params";
-
-export function createAccountValidator(params: CreateAccountParams) {
+export function createAccountValidator(params: TycheDO.Board.CreateAccountParams) {
   validateParams({
     name: !!params.name && typeof params.name === "string",
     type:
@@ -24,7 +14,7 @@ export function createAccountValidator(params: CreateAccountParams) {
   });
 }
 
-export function updateAccountValidator(params: UpdateAccountParams) {
+export function updateAccountValidator(params: TycheDO.Board.UpdateAccountParams) {
   validateParams({
     accountId: !!params.accountId && typeof params.accountId === "string",
     account: !!params.account && typeof params.account === "object",
@@ -47,13 +37,15 @@ export function updateAccountValidator(params: UpdateAccountParams) {
   });
 }
 
-export function deleteAccountValidator(params: DeleteAccountParams) {
+export function deleteAccountValidator(params: TycheDO.Board.DeleteAccountParams) {
   validateParams({
     accountId: !!params.accountId && typeof params.accountId === "string",
   });
 }
 
-export function createTransactionValidator(params: CreateTransactionParams) {
+export function createTransactionValidator(
+  params: TycheDO.Board.CreateTransactionParams,
+) {
   validateParams({
     description: !!params.description && typeof params.description === "string",
     type: params.type === "expense" || params.type === "income",
@@ -65,7 +57,9 @@ export function createTransactionValidator(params: CreateTransactionParams) {
   });
 }
 
-export function updateTransactionValidator(params: UpdateTransactionParams) {
+export function updateTransactionValidator(
+  params: TycheDO.Board.UpdateTransactionParams,
+) {
   validateParams({
     transactionId: !!params.transactionId && typeof params.transactionId === "string",
     transaction: !!params.transaction && typeof params.transaction === "object",
@@ -87,13 +81,17 @@ export function updateTransactionValidator(params: UpdateTransactionParams) {
   });
 }
 
-export function deleteTransactionValidator(params: DeleteTransactionParams) {
+export function deleteTransactionValidator(
+  params: TycheDO.Board.DeleteTransactionParams,
+) {
   validateParams({
     transactionId: !!params.transactionId && typeof params.transactionId === "string",
   });
 }
 
-export function updateParametersValidator(params: UpdateParametersParams) {
+export function updateParametersValidator(
+  params: TycheDO.Board.UpdateParametersParams,
+) {
   validateParams({
     savingsGoalPercentage:
       params.savingsGoalPercentage === undefined ||

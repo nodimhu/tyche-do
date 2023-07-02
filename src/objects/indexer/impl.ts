@@ -8,27 +8,28 @@ import {
 } from "../../common/durable-operation-object/decorators";
 import { HttpOKResponse } from "../../common/responses";
 
-import { CreateIndexedIdParams } from "./params";
-import { CreateIndexedIdResult } from "./results";
-import { IndexerData } from "./types";
 import { createIndexedIdValidator } from "./validators";
 
 // objName: <any_name>  - acts as namespace, within which items can be indexed
-export class Indexer extends DurableDataOperationObject<IndexerData>({}) {
+export class Indexer extends DurableDataOperationObject<TycheDO.Indexer.IndexerData>(
+  {},
+) {
   protected get binding(): DurableObjectNamespace {
     return this.env.INDEXER;
   }
 
   @Operation
-  @RequireParams<CreateIndexedIdParams>("itemName")
+  @RequireParams<TycheDO.Indexer.CreateIndexedIdParams>("itemName")
   @ValidateParams(createIndexedIdValidator)
-  async createIndexedId(params: CreateIndexedIdParams): Promise<Response> {
+  async createIndexedId(
+    params: TycheDO.Indexer.CreateIndexedIdParams,
+  ): Promise<Response> {
     const { counter: currentCounter } = (await this.getData(params.itemName)) ?? {
       counter: 0,
     };
     this.setData({ [params.itemName]: { counter: currentCounter + 1 } });
 
-    return new HttpOKResponse<CreateIndexedIdResult>({
+    return new HttpOKResponse<TycheDO.Indexer.CreateIndexedIdResult>({
       itemId: params.itemName + "-" + currentCounter,
     });
   }

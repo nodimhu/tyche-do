@@ -1,9 +1,9 @@
 import { validateParams } from "../../common/durable-operation-object/helpers";
 import { isCurrency, isLocale } from "../../common/utils";
 
-import { UpdateUserSettingsParams } from "./params";
-
-export function updateSettingsValidator(params: UpdateUserSettingsParams) {
+export function updateSettingsValidator(
+  params: TycheDO.UserSettings.UpdateUserSettingsParams,
+) {
   validateParams({
     locale:
       params.locale === undefined ||

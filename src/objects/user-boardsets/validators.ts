@@ -1,20 +1,15 @@
 import { validateParams } from "../../common/durable-operation-object/helpers";
 import { isCurrency } from "../../common/utils";
 
-import {
-  CreateBoardsetParams,
-  DeleteBoardsetParams,
-  GetBoardsetParams,
-  UpdateBoardsetParams,
-} from "./params";
-
-export function getBoardsetValidator(params: GetBoardsetParams) {
+export function getBoardsetValidator(params: TycheDO.UserBoardsets.GetBoardsetParams) {
   validateParams({
     boardsetId: !!params.boardsetId && typeof params.boardsetId === "string",
   });
 }
 
-export function createBoardsetValidator(params: CreateBoardsetParams) {
+export function createBoardsetValidator(
+  params: TycheDO.UserBoardsets.CreateBoardsetParams,
+) {
   validateParams({
     name: !!params.name && typeof params.name === "string",
     currency:
@@ -25,7 +20,9 @@ export function createBoardsetValidator(params: CreateBoardsetParams) {
   });
 }
 
-export function updateBoardsetValidator(params: UpdateBoardsetParams) {
+export function updateBoardsetValidator(
+  params: TycheDO.UserBoardsets.UpdateBoardsetParams,
+) {
   validateParams({
     boardsetId: !!params.boardsetId && typeof params.boardsetId === "string",
     boardset: !!params.boardset && typeof params.boardset === "object",
@@ -41,7 +38,9 @@ export function updateBoardsetValidator(params: UpdateBoardsetParams) {
   });
 }
 
-export function deleteBoardsetValidator(params: DeleteBoardsetParams) {
+export function deleteBoardsetValidator(
+  params: TycheDO.UserBoardsets.DeleteBoardsetParams,
+) {
   validateParams({
     boardsetId: !!params.boardsetId && typeof params.boardsetId === "string",
   });

@@ -1,9 +1,5 @@
 import sha256 from "crypto-js/sha256";
 
-import { HashData } from "../../common/types";
-
-import { User } from "./types";
-
 export function createPasswordHashData(password: string): HashData {
   const randomValues = crypto.getRandomValues(new Uint8Array(16));
 
@@ -25,8 +21,10 @@ export function verifyPassword(password: string, passwordHashData: HashData): bo
   return passwordHash === passwordHashData.hash;
 }
 
-export function withoutPasswordHashData(user: User): Omit<User, "passwordHashData"> {
-  const returnUser: Partial<User> = { ...user };
+export function withoutPasswordHashData(
+  user: TycheDO.Users.User,
+): Omit<TycheDO.Users.User, "passwordHashData"> {
+  const returnUser: Partial<TycheDO.Users.User> = { ...user };
   delete returnUser.passwordHashData;
-  return returnUser as Omit<User, "passwordHashData">;
+  return returnUser as Omit<TycheDO.Users.User, "passwordHashData">;
 }

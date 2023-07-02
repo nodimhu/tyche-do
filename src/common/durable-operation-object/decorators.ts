@@ -1,5 +1,4 @@
 import { isFunction } from "../guards";
-import { JSONObject } from "../types";
 import { OperationParameterRequiredError } from "./errors";
 
 export function Operation<

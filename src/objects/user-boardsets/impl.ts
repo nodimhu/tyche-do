@@ -16,19 +16,6 @@ import {
 import { BoardsetBoards } from "../boardset-boards";
 import { createIndexedId } from "../indexer/helpers";
 import {
-  CreateBoardsetParams,
-  DeleteBoardsetParams,
-  GetBoardsetParams,
-  UpdateBoardsetParams,
-} from "./params";
-import {
-  CreateBoardsetResult,
-  GetBoardsetResult,
-  GetBoardsetsResult,
-  UpdateBoardsetResult,
-} from "./results";
-import { BoardsetsData } from "./types";
-import {
   createBoardsetValidator,
   deleteBoardsetValidator,
   getBoardsetValidator,
@@ -36,7 +23,9 @@ import {
 } from "./validators";
 
 // objName: <username>
-export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({}) {
+export class UserBoardsets extends DurableDataOperationObject<TycheDO.UserBoardsets.BoardsetsData>(
+  {},
+) {
   protected get binding(): DurableObjectNamespace {
     return this.env.USER_BOARDSETS;
   }
@@ -49,26 +38,31 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
   async getBoardsets(): Promise<Response> {
     const boardsetsData = await this.getData();
 
-    return new HttpOKResponse<GetBoardsetsResult>(boardsetsData);
+    return new HttpOKResponse<TycheDO.UserBoardsets.GetBoardsetsResult>(boardsetsData);
   }
 
   @Operation
-  @RequireParams<GetBoardsetParams>("boardsetId")
+  @RequireParams<TycheDO.UserBoardsets.GetBoardsetParams>("boardsetId")
   @ValidateParams(getBoardsetValidator)
-  async getBoardset(params: GetBoardsetParams): Promise<Response> {
+  async getBoardset(
+    params: TycheDO.UserBoardsets.GetBoardsetParams,
+  ): Promise<Response> {
     const boardset = await this.getData(params.boardsetId);
 
     if (!boardset) {
       return new HttpNotFoundResponse();
     }
 
-    return new HttpOKResponse<GetBoardsetResult>(boardset);
+    return new HttpOKResponse<TycheDO.UserBoardsets.GetBoardsetResult>(boardset);
   }
 
   @Operation
-  @RequireParams<CreateBoardsetParams>("name")
+  @RequireParams<TycheDO.UserBoardsets.CreateBoardsetParams>("name")
   @ValidateParams(createBoardsetValidator)
-  async createBoardset(params: CreateBoardsetParams, name: string): Promise<Response> {
+  async createBoardset(
+    params: TycheDO.UserBoardsets.CreateBoardsetParams,
+    name: string,
+  ): Promise<Response> {
     const newBoardsetId = await this.createBoardsetId(name);
 
     const newBoardset = {
@@ -78,13 +72,17 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
 
     await this.setData({ [newBoardsetId]: newBoardset });
 
-    return new HttpOKResponse<CreateBoardsetResult>({ [newBoardsetId]: newBoardset });
+    return new HttpOKResponse<TycheDO.UserBoardsets.CreateBoardsetResult>({
+      [newBoardsetId]: newBoardset,
+    });
   }
 
   @Operation
-  @RequireParams<UpdateBoardsetParams>("boardsetId", "boardset")
+  @RequireParams<TycheDO.UserBoardsets.UpdateBoardsetParams>("boardsetId", "boardset")
   @ValidateParams(updateBoardsetValidator)
-  async updateBoardset(params: UpdateBoardsetParams): Promise<Response> {
+  async updateBoardset(
+    params: TycheDO.UserBoardsets.UpdateBoardsetParams,
+  ): Promise<Response> {
     const boardset = await this.getData(params.boardsetId);
 
     if (!boardset) {
@@ -105,13 +103,15 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
 
     await this.setData({ [params.boardsetId]: boardset });
 
-    return new HttpOKResponse<UpdateBoardsetResult>(boardset);
+    return new HttpOKResponse<TycheDO.UserBoardsets.UpdateBoardsetResult>(boardset);
   }
 
   @Operation
-  @RequireParams<DeleteBoardsetParams>("boardsetId")
+  @RequireParams<TycheDO.UserBoardsets.DeleteBoardsetParams>("boardsetId")
   @ValidateParams(deleteBoardsetValidator)
-  async deleteBoardset(params: DeleteBoardsetParams): Promise<Response> {
+  async deleteBoardset(
+    params: TycheDO.UserBoardsets.DeleteBoardsetParams,
+  ): Promise<Response> {
     const boardset = await this.getData(params.boardsetId);
 
     if (!boardset) {
@@ -141,7 +141,7 @@ export class UserBoardsets extends DurableDataOperationObject<BoardsetsData>({})
 
     await Promise.all(
       allBoardsetIds.map((boardsetId) =>
-        fetchOperation<UserBoardsets, DeleteBoardsetParams>(
+        fetchOperation<UserBoardsets, TycheDO.UserBoardsets.DeleteBoardsetParams>(
           this.binding,
           name,
           "deleteBoardset",

@@ -1,5 +1,4 @@
 import { JSON_CONTENT_HEADER } from "../responses";
-import { JSONObject } from "../types";
 import { OperationParameterInvalidError } from "./errors";
 
 export function validateParams(isValidParameter: Record<string, boolean>): void {

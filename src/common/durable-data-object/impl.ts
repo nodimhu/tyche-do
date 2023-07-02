@@ -1,4 +1,3 @@
-import { JSONObject } from "../types";
 import { DurableDataObjectMeta } from "./types";
 
 export abstract class DurableDataObject<Data extends JSONObject>

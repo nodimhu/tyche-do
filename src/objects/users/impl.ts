@@ -18,15 +18,6 @@ import {
 import { UserBoardsets } from "../user-boardsets";
 import { UserSettings } from "../user-settings";
 import {
-  CreateUserParams,
-  DeleteUserParams,
-  GetUserParams,
-  UpdateUserParams,
-  VerifyUserPasswordParams,
-} from "./params";
-import { CreateUserResult, GetUserResult, UpdateUserResult } from "./results";
-import { UsersData } from "./types";
-import {
   createPasswordHashData,
   verifyPassword,
   withoutPasswordHashData,
@@ -44,28 +35,30 @@ import {
 // potential race conditions only for a single user, which should be fine.
 
 // objName: "root"
-export class Users extends DurableDataOperationObject<UsersData>({}) {
+export class Users extends DurableDataOperationObject<TycheDO.Users.UsersData>({}) {
   protected get binding(): DurableObjectNamespace {
     return this.env.USERS;
   }
 
   @Operation
-  @RequireParams<GetUserParams>("username")
+  @RequireParams<TycheDO.Users.GetUserParams>("username")
   @ValidateParams(getOrDeleteUserValidator)
-  async getUser(params: GetUserParams): Promise<Response> {
+  async getUser(params: TycheDO.Users.GetUserParams): Promise<Response> {
     const user = await this.getData(params.username);
 
     if (!user) {
       return new HttpNotFoundResponse();
     }
 
-    return new HttpOKResponse<GetUserResult>(withoutPasswordHashData(user));
+    return new HttpOKResponse<TycheDO.Users.GetUserResult>(
+      withoutPasswordHashData(user),
+    );
   }
 
   @Operation
-  @RequireParams<CreateUserParams>("username", "password", "email")
+  @RequireParams<TycheDO.Users.CreateUserParams>("username", "password", "email")
   @ValidateParams(createUserValidator)
-  async createUser(params: CreateUserParams): Promise<Response> {
+  async createUser(params: TycheDO.Users.CreateUserParams): Promise<Response> {
     const existingUser = await this.getData(params.username);
 
     if (existingUser) {
@@ -80,13 +73,15 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
 
     await this.setData({ [params.username]: newUser });
 
-    return new HttpOKResponse<CreateUserResult>(withoutPasswordHashData(newUser));
+    return new HttpOKResponse<TycheDO.Users.CreateUserResult>(
+      withoutPasswordHashData(newUser),
+    );
   }
 
   @Operation
-  @RequireParams<UpdateUserParams>("username", "user")
+  @RequireParams<TycheDO.Users.UpdateUserParams>("username", "user")
   @ValidateParams(updateUserValidator)
-  async updateUser(params: UpdateUserParams): Promise<Response> {
+  async updateUser(params: TycheDO.Users.UpdateUserParams): Promise<Response> {
     const user = await this.getData(params.username);
 
     if (!user) {
@@ -107,13 +102,15 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
 
     await this.setData({ [params.username]: user });
 
-    return new HttpOKResponse<UpdateUserResult>(withoutPasswordHashData(user));
+    return new HttpOKResponse<TycheDO.Users.UpdateUserResult>(
+      withoutPasswordHashData(user),
+    );
   }
 
   @Operation
-  @RequireParams<DeleteUserParams>("username")
+  @RequireParams<TycheDO.Users.DeleteUserParams>("username")
   @ValidateParams(getOrDeleteUserValidator)
-  async deleteUser(params: DeleteUserParams): Promise<Response> {
+  async deleteUser(params: TycheDO.Users.DeleteUserParams): Promise<Response> {
     const user = await this.getData(params.username);
 
     if (!user) {
@@ -137,9 +134,11 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
   }
 
   @Operation
-  @RequireParams<VerifyUserPasswordParams>("username", "password")
+  @RequireParams<TycheDO.Users.VerifyUserPasswordParams>("username", "password")
   @ValidateParams(verifyUserPasswordValidator)
-  async verifyUserPassword(params: VerifyUserPasswordParams): Promise<Response> {
+  async verifyUserPassword(
+    params: TycheDO.Users.VerifyUserPasswordParams,
+  ): Promise<Response> {
     const userInfo = await this.getData(params.username);
 
     if (!userInfo) {

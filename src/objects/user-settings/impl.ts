@@ -4,14 +4,15 @@ import {
 } from "../../common/durable-operation-object";
 import { ValidateParams } from "../../common/durable-operation-object/decorators";
 import { HttpNoContentResponse, HttpOKResponse } from "../../common/responses";
-
-import { UpdateUserSettingsParams } from "./params";
-import { GetUserSettingsResult, UpdateUserSettingsResult } from "./results";
-import { DEFAULT_USER_SETTINGS_DATA, UserSettingsData } from "./types";
 import { updateSettingsValidator } from "./validators";
 
+const DEFAULT_USER_SETTINGS_DATA: TycheDO.UserSettings.UserSettingsData = {
+  locale: "en-US",
+  defaultCurrency: "USD",
+};
+
 // objName: <username>
-export class UserSettings extends DurableDataOperationObject<UserSettingsData>(
+export class UserSettings extends DurableDataOperationObject<TycheDO.UserSettings.UserSettingsData>(
   DEFAULT_USER_SETTINGS_DATA,
 ) {
   protected get binding(): DurableObjectNamespace {
@@ -22,12 +23,16 @@ export class UserSettings extends DurableDataOperationObject<UserSettingsData>(
   async getSettings(): Promise<Response> {
     const userSettingsData = await this.getData();
 
-    return new HttpOKResponse<GetUserSettingsResult>(userSettingsData);
+    return new HttpOKResponse<TycheDO.UserSettings.GetUserSettingsResult>(
+      userSettingsData,
+    );
   }
 
   @Operation
   @ValidateParams(updateSettingsValidator)
-  async updateSettings(params: UpdateUserSettingsParams): Promise<Response> {
+  async updateSettings(
+    params: TycheDO.UserSettings.UpdateUserSettingsParams,
+  ): Promise<Response> {
     const userSettingsData = await this.getData();
 
     if (params.defaultCurrency !== undefined) {
@@ -40,7 +45,9 @@ export class UserSettings extends DurableDataOperationObject<UserSettingsData>(
 
     await this.setData(userSettingsData);
 
-    return new HttpOKResponse<UpdateUserSettingsResult>(userSettingsData);
+    return new HttpOKResponse<TycheDO.UserSettings.UpdateUserSettingsResult>(
+      userSettingsData,
+    );
   }
 
   @Operation
