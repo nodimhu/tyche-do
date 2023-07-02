@@ -102,11 +102,7 @@ export class Users extends DurableDataOperationObject<UsersData>({}) {
     }
 
     if (params.user.password !== undefined) {
-      if (!verifyPassword(params.user.password.current, user.passwordHashData)) {
-        return new HttpUnauthorizedResponse();
-      }
-
-      user.passwordHashData = createPasswordHashData(params.user.password.new);
+      user.passwordHashData = createPasswordHashData(params.user.password);
     }
 
     await this.setData({ [params.username]: user });
