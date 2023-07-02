@@ -1,5 +1,5 @@
+import { DurableOperationObject } from ".";
 import { DurableDataObject } from "../durable-data-object";
-import { DurableOperationObject } from "./impl";
 
 export function DurableDataOperationObject<Data extends JSONObject>(
   defaultData: Data,
