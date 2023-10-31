@@ -4,6 +4,7 @@ import {
 } from "../../common/durable-operation-object";
 import { ValidateParams } from "../../common/durable-operation-object/decorators";
 import { HttpNoContentResponse, HttpOKResponse } from "../../common/responses";
+
 import { updateSettingsValidator } from "./validators";
 
 const DEFAULT_USER_SETTINGS_DATA: TycheDO.UserSettings.UserSettingsData = {

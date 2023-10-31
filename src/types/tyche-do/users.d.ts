@@ -37,6 +37,7 @@ declare global {
       // --- RESULTS ---
 
       type GetUserResult = Omit<User, "passwordHashData">;
+      type GetUsersResult = Record<string, Omit<User, "passwordHashData">>;
       type CreateUserResult = GetUserResult;
       type UpdateUserResult = GetUserResult;
     }

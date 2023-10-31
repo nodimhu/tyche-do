@@ -6,8 +6,8 @@
   "license": "Apache-2.0",
   "scripts": {
     "preview": "wrangler publish --dry-run --outdir=dist && miniflare -m -e .env --do-persist",
-    "lint": "prettier --plugin-search-dir . --check . && eslint .",
-    "format": "prettier --plugin-search-dir . --write ."
+    "lint": "prettier --plugin-search-dir . --check src/ && eslint src/",
+    "format": "prettier --plugin-search-dir . --write src/"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230321.0",

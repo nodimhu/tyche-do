@@ -41,6 +41,20 @@ export class Users extends DurableDataOperationObject<TycheDO.Users.UsersData>({
   }
 
   @Operation
+  async getUsers(): Promise<Response> {
+    const users = await this.getData();
+
+    return new HttpOKResponse<TycheDO.Users.GetUsersResult>(
+      Object.fromEntries(
+        Object.entries(users).map(([username, user]) => [
+          username,
+          withoutPasswordHashData(user),
+        ]),
+      ),
+    );
+  }
+
+  @Operation
   @RequireParams<TycheDO.Users.GetUserParams>("username")
   @ValidateParams(getOrDeleteUserValidator)
   async getUser(params: TycheDO.Users.GetUserParams): Promise<Response> {

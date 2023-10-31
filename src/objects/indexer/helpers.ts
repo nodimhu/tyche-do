@@ -1,7 +1,7 @@
 import { OperationError } from "../../common/durable-operation-object/errors";
 import { fetchOperation } from "../../common/durable-operation-object/helpers";
 
-import { Indexer } from "./impl";
+import { Indexer } from ".";
 
 export async function createIndexedId(
   env: Env,
